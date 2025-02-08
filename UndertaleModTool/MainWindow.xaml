@@ -14,10 +14,11 @@
         Height="450" Width="800" Loaded="Window_Loaded"
         AllowDrop="True" Drop="Window_Drop">
     <Window.Title>
-        <MultiBinding StringFormat="{}{0} - {1} [{2}]">
+        <MultiBinding StringFormat="{}{0} - {1} [{2}] [{3}]">
             <Binding Path="TitleMain"/>
             <Binding Path="Data.GeneralInfo" FallbackValue="No game loaded"/>
             <Binding Path="FilePath"/>
+            <Binding Path="ProjectPath" TargetNullValue="No project loaded"/>
         </MultiBinding>
     </Window.Title>
     <Window.Resources>
@@ -82,6 +83,10 @@
                             </Style>
                         </MenuItem.Style>
                     </MenuItem>
+                    <Separator/>
+                    <MenuItem Header="Open project" Click="MenuItem_OpenProject_Click" />
+                    <MenuItem Header="Save project" Click="MenuItem_SaveProject_Click" />
+                    <MenuItem Header="Save project as" Click="MenuItem_SaveProjectAs_Click" />
                     <Separator/>
                     <MenuItem Header="_Temp run game" Command="Print" InputGestureText="F5">
                         <!-- TODO: I think I need a custom command for that... -->

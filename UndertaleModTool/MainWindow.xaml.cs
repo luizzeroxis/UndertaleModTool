@@ -65,6 +65,7 @@ namespace UndertaleModTool
 
         public UndertaleData Data { get; set; }
         public string FilePath { get; set; }
+        public string ProjectPath { get; set; } = null;
         public string ScriptPath { get; set; } // For the scripting interface specifically
 
         public string TitleMain { get; set; }
@@ -827,6 +828,146 @@ namespace UndertaleModTool
                     this.ShowError("The changes in code editor weren't saved due to some error in \"SaveCodeChanges()\".");
             }
         }
+
+        void MenuItem_OpenProject_Click(object sender, RoutedEventArgs e)
+        {
+            OpenProject();
+        }
+
+        void MenuItem_SaveProject_Click(object sender, RoutedEventArgs e)
+        {
+            SaveProject(false);
+        }
+
+        void MenuItem_SaveProjectAs_Click(object sender, RoutedEventArgs e)
+        {
+            SaveProject(true);
+        }
+
+        async Task<ProjectMetadata> LoadProjectMetadata(string projectPath)
+        {
+            try
+            {
+                return SystemJson.JsonSerializer.Deserialize<ProjectMetadata>(await File.ReadAllTextAsync(Path.Join(projectPath, "project.json")));
+            }
+            catch (Exception ex)
+            {
+                this.ShowError($"Error when reading project.json: {ex.Message}");
+                return null;
+            }
+        }
+
+        async void OpenProject()
+        {
+            // Select folder
+            OpenFolderDialog dlg = new();
+            dlg.Title = "Select a directory containing an UndertaleModTool project";
+
+            if (dlg.ShowDialog(this) == false)
+                return;
+            string projectPath = dlg.FolderName;
+
+            // Load project metadata file
+            ProjectMetadata projectMetadata = await LoadProjectMetadata(projectPath);
+            if (projectMetadata == null)
+                return;
+
+            // Load data.win
+            string dataPath = Path.Join(projectPath, projectMetadata.DataFileName);
+            await LoadFile(dataPath, true);
+
+            ProjectPath = projectPath;
+        }
+
+        public async void SaveProject(bool saveAs)
+        {
+            string projectPathPrevious = saveAs ? null : ProjectPath;
+            string projectPath = ProjectPath;
+
+            // From Command_Save:
+            if (CanSave)
+            {
+                if (!CanSafelySave)
+                    this.ShowWarning("Errors occurred during loading. High chance of data loss! Proceed at your own risk.");
+
+                var result = await SaveCodeChanges();
+                if (result == SaveResult.Error)
+                {
+                    this.ShowError("The changes in code editor weren't saved due to some error in \"SaveCodeChanges()\".");
+                    return;
+                }
+            }
+
+            if (projectPathPrevious == null)
+            {
+                while (true)
+                {
+                    // Select folder
+                    OpenFolderDialog dlg = new();
+                    dlg.Title = "Select an empty directory for the UndertaleModTool project to be saved in";
+
+                    if (dlg.ShowDialog(this) == false) return;
+                    projectPath = dlg.FolderName;
+
+                    // Check if folder is empty
+                    if (Directory.EnumerateFileSystemEntries(projectPath).Any())
+                        this.ShowError($"Directory {projectPath} is not empty");
+                    else
+                        break;
+                }
+            }
+
+            string dataPathPrevious = null;
+            string dataPathPreviousBackup = null;
+
+            if (projectPathPrevious != null)
+            {
+                ProjectMetadata projectMetadataPrevious = await LoadProjectMetadata(projectPathPrevious);
+                if (projectMetadataPrevious == null)
+                    return;
+
+                // Backup previous data file
+                dataPathPrevious = Path.Join(projectPathPrevious, projectMetadataPrevious.DataFileName);
+                dataPathPreviousBackup = dataPathPrevious + "bak";
+
+                if (File.Exists(dataPathPreviousBackup))
+                {
+                    this.ShowError($"File {dataPathPreviousBackup} already exists");
+                    return;
+                }
+
+                File.Move(dataPathPrevious, dataPathPreviousBackup);
+            }
+
+            ProjectMetadata projectMetadata = new();
+            projectMetadata.DataFileName = Path.GetFileName(FilePath);
+
+            // Save data file
+            string dataPath = Path.Join(projectPath, projectMetadata.DataFileName);
+            if (!await SaveFile(dataPath))
+            {
+                if (projectPathPrevious != null)
+                {
+                    // If overriding, recover backup of data file
+                    File.Move(dataPathPreviousBackup, dataPathPrevious);
+                }
+                return;
+            }
+
+            if (projectPathPrevious != null)
+            {
+                // Delete backup of previous data file
+                if (File.Exists(dataPathPreviousBackup))
+                    File.Delete(dataPathPreviousBackup);
+            }
+
+            // Save project metadata file
+            string projectMetaDataPath = Path.Join(projectPath, "project.json");
+            await File.WriteAllTextAsync(projectMetaDataPath, SystemJson.JsonSerializer.Serialize(projectMetadata));
+
+            ProjectPath = projectPath;
+        }
+        
         private async void DataWindow_Closing(object sender, CancelEventArgs e)
         {
             if (Data != null)
@@ -1113,16 +1254,18 @@ namespace UndertaleModTool
             dialog.ShowDialog();
             await t;
 
+            ProjectPath = null;
+
             // Clear "GC holes" left in the memory in process of data unserializing
             // https://docs.microsoft.com/en-us/dotnet/api/system.runtime.gcsettings.largeobjectheapcompactionmode?view=net-6.0
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
         }
 
-        private async Task SaveFile(string filename, bool suppressDebug = false)
+        private async Task<bool> SaveFile(string filename, bool suppressDebug = false)
         {
             if (Data == null || Data.UnsupportedBytecodeVersion)
-                return;
+                return false;
 
             bool isDifferentPath = FilePath != filename;
 
@@ -1139,7 +1282,7 @@ namespace UndertaleModTool
             DebugDataDialog.DebugDataMode debugMode = DebugDataDialog.DebugDataMode.NoDebug;
             if (!suppressDebug && Data.GeneralInfo != null && !Data.GeneralInfo.IsDebuggerDisabled)
                 this.ShowWarning("You are saving the game in GameMaker Studio debug mode. Unless the debugger is running, the normal runtime will simply hang after loading. You can turn this off in General Info by checking the \"Disable Debugger\" box and saving.", "GMS Debugger");
-            Task t = Task.Run(async () =>
+            Task<bool> t = Task.Run(async () =>
             {
                 bool SaveSucceeded = true;
 
@@ -1310,12 +1453,16 @@ namespace UndertaleModTool
                 {
                     dialog.Hide();
                 });
+
+                return SaveSucceeded;
             });
             dialog.ShowDialog();
-            await t;
+            bool result = await t;
 
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
+
+            return result;
         }
 
         public string GenerateMD5(string filename)
@@ -4103,6 +4250,11 @@ result in loss of work.");
             Heading = heading;
             Description = description;
         }
+    }
+
+    public class ProjectMetadata
+    {
+        public string DataFileName { get; set; } = "data.win";
     }
 }
 
