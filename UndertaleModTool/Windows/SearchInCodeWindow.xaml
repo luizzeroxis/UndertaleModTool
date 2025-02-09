@@ -22,7 +22,7 @@
         </ContextMenu>
     </Window.Resources>
     <DockPanel>
-        <StatusBar DockPanel.Dock="Bottom">
+        <StatusBar DockPanel.Dock="Bottom" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
             <StatusBarItem>
                 <TextBlock Name="StatusBarTextBlock"></TextBlock>
             </StatusBarItem>

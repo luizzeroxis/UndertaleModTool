@@ -894,19 +894,10 @@ namespace UndertaleModTool
             GoForward();
         }
 
-        private SearchInCodeWindow searchInCodeWindow;
         private void Command_SearchInCode(object sender, ExecutedRoutedEventArgs e)
         {
-            if (searchInCodeWindow is null)
-            {
-                searchInCodeWindow = new();
-                searchInCodeWindow.Closed += (object sender, EventArgs e) =>
-                {
-                    searchInCodeWindow = null;
-                };
-                searchInCodeWindow.Show();
-            }
-            searchInCodeWindow.ActivateAndFocusOnTextBox();
+            SearchInCodeWindow searchInCodeWindow = new();
+            searchInCodeWindow.Show();
         }
 
         private void DisposeGameData()

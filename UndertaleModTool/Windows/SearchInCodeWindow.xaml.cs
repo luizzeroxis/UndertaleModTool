@@ -1,4 +1,6 @@
-﻿using System;
+﻿#pragma warning disable CA1416 // Validate platform compatibility
+
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -48,18 +50,11 @@ namespace UndertaleModTool.Windows
 
         private UndertaleCodeEditor.CodeEditorTab editorTab;
 
+        static bool isSearchInProgress = false;
+
         public SearchInCodeWindow()
         {
             InitializeComponent();
-        }
-
-
-
-        public void ActivateAndFocusOnTextBox()
-        {
-            Activate();
-            SearchTextBox.Focus();
-            SearchTextBox.SelectAll();
         }
 
         private async void SearchButton_Click(object sender, RoutedEventArgs e)
@@ -88,17 +83,33 @@ namespace UndertaleModTool.Windows
             if (String.IsNullOrEmpty(text))
                 return;
 
+            if (isSearchInProgress)
+            {
+                this.ShowError("Can't search while another search is in progress.");
+                return;
+            }
+
             isCaseSensitive = CaseSensitiveCheckBox.IsChecked ?? false;
             isRegexSearch = RegexSearchCheckBox.IsChecked ?? false;
             isInAssembly = InAssemblyCheckBox.IsChecked ?? false;
 
             if (isRegexSearch)
             {
-                keywordRegex = new(text, isCaseSensitive ? RegexOptions.Compiled : RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                try
+                {
+                    keywordRegex = new(text, isCaseSensitive ? RegexOptions.Compiled : RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                }
+                catch (ArgumentException e)
+                {
+                    this.ShowError($"Invalid regex: {e.Message}");
+                    return;
+                }
             }
 
             mainWindow.IsEnabled = false;
             this.IsEnabled = false;
+
+            isSearchInProgress = true;
 
             loaderDialog = new("Searching...", null);
             loaderDialog.Owner = this;
@@ -142,6 +153,8 @@ namespace UndertaleModTool.Windows
 
             mainWindow.IsEnabled = true;
             this.IsEnabled = true;
+
+            isSearchInProgress = false;
         }
 
         void SearchInUndertaleCode(UndertaleCode code)
@@ -254,6 +267,12 @@ namespace UndertaleModTool.Windows
 
         void OpenSelectedListViewItem(bool inNewTab = false)
         {
+            if (isSearchInProgress)
+            {
+                this.ShowError("Can't open results while a search is in progress.");
+                return;
+            }
+
             foreach (Result result in ResultsListView.SelectedItems)
             {
                 mainWindow.OpenCodeEntry(result.Code, result.LineNumber, editorTab, inNewTab);
@@ -287,7 +306,10 @@ namespace UndertaleModTool.Windows
         private void ListViewItem_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Return)
+            {
                 OpenSelectedListViewItem();
+                e.Handled = true;
+            }   
         }
 
         private void MenuItemOpen_Click(object sender, RoutedEventArgs e)
@@ -325,3 +347,5 @@ namespace UndertaleModTool.Windows
         }
     }
 }
+
+#pragma warning restore CA1416 // Validate platform compatibility

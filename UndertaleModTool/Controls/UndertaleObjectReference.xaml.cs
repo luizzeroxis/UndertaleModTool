@@ -193,17 +193,40 @@ namespace UndertaleModTool
                 {
                     if (RoomGameObject is null)
                     {
-                        ObjectReference = CreateCode(mainWindow.Data, "gml_Room_" + Room.Name.Content + "_Create");
+                        // Generate base name
+                        string name = "gml_Room_" + Room.Name.Content + "_Create";
+
+                        // If code already exists, use it (otherwise create new code)
+                        if (mainWindow.Data.Code.ByName(name) is UndertaleCode existing)
+                        {
+                            mainWindow.ShowWarning("Code entry for room already exists; reusing it.");
+                            ObjectReference = existing;
+                        }
+                        else
+                        {
+                            ObjectReference = CreateCode(mainWindow.Data, name);
+                        }
                     }
                     else
                     {
+                        // Generate base name
+                        string beginning = "gml_RoomCC_" + Room.Name.Content + "_" + RoomGameObject.InstanceID.ToString();
                         string suffix = !IsPreCreate ? "_Create" : "_PreCreate";
-                        ObjectReference = CreateCode(mainWindow.Data, "gml_RoomCC_" + Room.Name.Content + "_" + RoomGameObject.InstanceID.ToString() + suffix);
+                        string name = beginning + suffix;
+
+                        // Ensure no duplicate names (in case instance IDs change)
+                        int i = 0;
+                        while (mainWindow.Data.Code.ByName(name) is not null)
+                        {
+                            name = beginning + "_" + (i++).ToString() + suffix;
+                        }
+
+                        ObjectReference = CreateCode(mainWindow.Data, name);
                     }
                 }
                 else
                 {
-                    mainWindow.ShowError($"Adding not supported in this situation.");
+                    mainWindow.ShowError("Adding not supported in this situation.");
                 }
             }
             else
@@ -212,7 +235,7 @@ namespace UndertaleModTool
             }
         }
 
-        // TODO move this to the models
+        // TODO: move this to the models
         static UndertaleCode CreateCode(UndertaleData data, string name)
         {
             UndertaleString nameString = data.Strings.MakeString(name);
@@ -225,20 +248,23 @@ namespace UndertaleModTool
 
             data.Code.Add(code);
 
-            UndertaleCodeLocals.LocalVar argsLocal = new()
+            if (data.CodeLocals is not null)
             {
-                Name = data.Strings.MakeString("arguments"),
-                Index = 0
-            };
+                UndertaleCodeLocals.LocalVar argsLocal = new()
+                {
+                    Name = data.Strings.MakeString("arguments"),
+                    Index = 0
+                };
 
-            UndertaleCodeLocals locals = new()
-            {
-                Name = nameString
-            };
+                UndertaleCodeLocals locals = new()
+                {
+                    Name = nameString
+                };
 
-            locals.Locals.Add(argsLocal);
+                locals.Locals.Add(argsLocal);
 
-            data.CodeLocals.Add(locals);
+                data.CodeLocals.Add(locals);
+            }
 
             return code;
         }
