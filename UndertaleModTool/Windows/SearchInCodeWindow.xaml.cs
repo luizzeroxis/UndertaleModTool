@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -178,7 +177,8 @@ namespace UndertaleModTool.Windows
 
         void SearchInGMLCache(KeyValuePair<string, string> code)
         {
-            SearchInCodeText(code.Key, TryGetProfileModeGML(code.Key) ?? code.Value);
+            UndertaleCode codeEntry = mainWindow.Data.Code.ByName(code.Key);
+            SearchInCodeText(code.Key, codeEntry.GML ?? code.Value);
 
             Interlocked.Increment(ref progressCount);
             Dispatcher.Invoke(() => loaderDialog.ReportProgress(progressCount));
@@ -192,7 +192,7 @@ namespace UndertaleModTool.Windows
                 {
                     var codeText = isInAssembly
                         ? code.Disassemble(mainWindow.Data.Variables, mainWindow.Data.CodeLocals.For(code))
-                        : TryGetProfileModeGML(code.Name.Content)
+                        : code.GML
                             ?? new Underanalyzer.Decompiler.DecompileContext(decompileContext, code, mainWindow.Data.ToolInfo.DecompilerSettings).DecompileToString();
                     SearchInCodeText(code.Name.Content, codeText);
                 }
@@ -206,17 +206,6 @@ namespace UndertaleModTool.Windows
 
             Interlocked.Increment(ref progressCount);
             Dispatcher.Invoke(() => loaderDialog.ReportProgress(progressCount));
-        }
-
-        static string TryGetProfileModeGML(string codeName)
-        {
-            if (SettingsWindow.ProfileModeEnabled)
-            {
-                string path = Path.Join(Settings.ProfilesFolder, mainWindow.ProfileHash, "Temp", codeName + ".gml");
-                if (File.Exists(path))
-                    return File.ReadAllText(path).Replace("\r\n", "\n");
-            }
-            return null;
         }
 
         void SearchInCodeText(string codeName, string codeText)

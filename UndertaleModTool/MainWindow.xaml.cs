@@ -188,15 +188,6 @@ namespace UndertaleModTool
 
         private LoaderDialog scriptDialog;
 
-        // Related to profile system and appdata
-        public byte[] MD5PreviouslyLoaded = new byte[13];
-        public byte[] MD5CurrentlyLoaded = new byte[15];
-        public static string AppDataFolder => Settings.AppDataFolder;
-        public static string ProfilesFolder = Path.Combine(Settings.AppDataFolder, "Profiles");
-        public static string CorrectionsFolder = Path.Combine(Program.GetExecutableDirectory(), "Corrections");
-        public string ProfileHash = "Unknown";
-        public bool CrashedWhileEditing = false;
-
         // Scripting interface-related
         private ScriptOptions scriptOptions;
         private Task scriptSetupTask;
@@ -507,10 +498,6 @@ namespace UndertaleModTool
                 }
             }
 
-            // Copy the known code corrections into the profile, if they don't already exist.
-            ApplyCorrections();
-            CrashCheck();
-
             RunGMSDebuggerItem.Visibility = Settings.Instance.ShowDebuggerOption
                                             ? Visibility.Visible : Visibility.Collapsed;
         }
@@ -695,7 +682,6 @@ namespace UndertaleModTool
 
             FilePath = null;
             Data = UndertaleData.CreateNew();
-            Data.ToolInfo.AppDataProfiles = ProfilesFolder;
             Data.ToolInfo.DecompilerSettings = SettingsWindow.DecompilerSettings;
             Data.ToolInfo.InstanceIdPrefix = () => SettingsWindow.InstanceIdPrefix;
             CloseChildFiles();
@@ -883,12 +869,6 @@ namespace UndertaleModTool
                         return;
                     }
                 }
-                else
-                {
-                    RevertProfile();
-                }
-
-                DestroyUMTLastEdited();
 
                 if (SettingsWindow.UseGMLCache && Data?.GMLCache?.Count > 0 && !Data.GMLCacheWasSaved && Data.GMLCacheIsReady && this.ShowQuestion("Save unedited code cache?") == MessageBoxResult.Yes)
                     await SaveGMLCache(FilePath, save);
@@ -1077,13 +1057,11 @@ namespace UndertaleModTool
                         {
                             CanSave = true;
                             CanSafelySave = true;
-                            await UpdateProfile(data, filename);
+
                             if (data != null)
                             {
-                                data.ToolInfo.ProfileMode = SettingsWindow.ProfileModeEnabled;
                                 data.ToolInfo.DecompilerSettings = SettingsWindow.DecompilerSettings;
                                 data.ToolInfo.InstanceIdPrefix = () => SettingsWindow.InstanceIdPrefix;
-                                data.ToolInfo.CurrentMD5 = BitConverter.ToString(MD5CurrentlyLoaded).Replace("-", "").ToLowerInvariant();
                             }
                         }
                         if (data.IsYYC())
@@ -1109,7 +1087,6 @@ namespace UndertaleModTool
                         UndertaleCachedImageLoader.Reset();
                         CachedTileDataLoader.Reset();
 
-                        Data.ToolInfo.AppDataProfiles = ProfilesFolder;
                         Data.ToolInfo.DecompilerSettings = SettingsWindow.DecompilerSettings;
                         Data.ToolInfo.InstanceIdPrefix = () => SettingsWindow.InstanceIdPrefix;
                         FilePath = filename;
@@ -1295,10 +1272,6 @@ namespace UndertaleModTool
                         File.Move(filename + "temp", filename);
 
                         await SaveGMLCache(filename, true, dialog, isDifferentPath);
-
-                        // Also make the changes to the profile system.
-                        await ProfileSaveEvent(Data, filename);
-                        SaveTempToMainProfile();
                     }
                     else
                     {
@@ -1306,7 +1279,6 @@ namespace UndertaleModTool
                         // We need to delete the temp file though (if it exists).
                         if (File.Exists(filename + "temp"))
                             File.Delete(filename + "temp");
-                        // No profile system changes, since the save failed, like a save was never attempted.
                     }
                 }
                 catch (Exception exc)
@@ -1317,11 +1289,6 @@ namespace UndertaleModTool
                     });
 
                     SaveSucceeded = false;
-                }
-                if (Data != null)
-                {
-                    Data.ToolInfo.ProfileMode = SettingsWindow.ProfileModeEnabled;
-                    Data.ToolInfo.CurrentMD5 = BitConverter.ToString(MD5CurrentlyLoaded).Replace("-", "").ToLowerInvariant();
                 }
 
                 UndertaleCodeEditor.gettextJSON = null;

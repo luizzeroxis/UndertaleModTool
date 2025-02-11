@@ -16,7 +16,6 @@ namespace UndertaleModTool
     {
         public static string AppDataFolder = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "UndertaleModTool");
-        public static string ProfilesFolder = Path.Combine(AppDataFolder, "Profiles");
 
         public string Version { get; set; } = MainWindow.Version;
         public string GameMakerStudioPath { get; set; } = "%appdata%\\GameMaker-Studio";

@@ -125,10 +125,15 @@ public interface IScriptInterface
     }
 
     //TODO: i have absolutely no idea what any of these do.
+    [Obsolete]
     void ReplaceTempWithMain(bool imAnExpertBtw = false);
+    [Obsolete]
     void ReplaceMainWithTemp(bool imAnExpertBtw = false);
+    [Obsolete]
     void ReplaceTempWithCorrections(bool imAnExpertBtw = false);
+    [Obsolete]
     void ReplaceCorrectionsWithTemp(bool imAnExpertBtw = false);
+    [Obsolete]
     void UpdateCorrections(bool imAnExpertBtw = false);
 
     /// <summary>
@@ -186,7 +191,9 @@ public interface IScriptInterface
     void InitializeScriptDialog();
 
     //TODO: some profile mod stuff, not quite sure on what its supposed to do.
+    [Obsolete]
     void ReapplyProfileCode();
+    [Obsolete]
     void NukeProfileGML(string codeName);
 
     /// <summary>

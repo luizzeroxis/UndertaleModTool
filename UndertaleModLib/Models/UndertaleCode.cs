@@ -1676,7 +1676,7 @@ public class UndertaleCode : UndertaleNamedResource, UndertaleObjectWithBlobs, I
     /// </summary>
     /// <param name="gmlCode">The GML code to append.</param>
     /// <param name="data">From which data file the GML code is coming from.</param>
-    /// <exception cref="Exception"> if the GML code does not compile or if there's an error writing the code to the profile entry.</exception>
+    /// <exception cref="Exception"> if the GML code does not compile.</exception>
     public void AppendGML(string gmlCode, UndertaleData data)
     {
         if (ParentEntry is not null)
@@ -1693,19 +1693,13 @@ public class UndertaleCode : UndertaleNamedResource, UndertaleObjectWithBlobs, I
 
         data.GMLCacheChanged?.Add(Name?.Content);
 
-        try
+        if (GML != null)
         {
-            // Attempt to write text in all modes, because this is a special case.
-            string tempPath = Path.Combine(data.ToolInfo.AppDataProfiles, data.ToolInfo.CurrentMD5, "Temp", Name?.Content + ".gml");
-            if (File.Exists(tempPath))
-            {
-                string readText = File.ReadAllText(tempPath) + "\n" + gmlCode;
-                File.WriteAllText(tempPath, readText);
-            }
+            GML += "\n" + gmlCode;
         }
-        catch (Exception exc)
+        else
         {
-            throw new Exception("Error during writing of GML code to profile:\n" + exc);
+            // TODO: Look into calls into this function to see if makes sense to decompile here.
         }
     }
 
@@ -1714,7 +1708,7 @@ public class UndertaleCode : UndertaleNamedResource, UndertaleObjectWithBlobs, I
     /// </summary>
     /// <param name="gmlCode">The new GML code for this code entry.</param>
     /// <param name="data">From which data file the GML code is coming from.</param>
-    /// <exception cref="Exception">If the GML code does not compile or if there's an error writing the code to the profile entry.</exception>
+    /// <exception cref="Exception">If the GML code does not compile.</exception>
     public void ReplaceGML(string gmlCode, UndertaleData data)
     {
         if (ParentEntry is not null)
@@ -1731,18 +1725,7 @@ public class UndertaleCode : UndertaleNamedResource, UndertaleObjectWithBlobs, I
 
         data.GMLCacheChanged?.Add(Name?.Content);
 
-        //TODO: only do this if profile mode is enabled in the first place
-        try
-        {
-            // When necessary, write to profile.
-            string tempPath = Path.Combine(data.ToolInfo.AppDataProfiles, data.ToolInfo.CurrentMD5, "Temp", Name?.Content + ".gml");
-            if (data.ToolInfo.ProfileMode || File.Exists(tempPath))
-                File.WriteAllText(tempPath, gmlCode);
-        }
-        catch (Exception exc)
-        {
-            throw new Exception("Error during writing of GML code to profile:\n" + exc);
-        }
+        GML = gmlCode;
     }
 
     /// <inheritdoc />

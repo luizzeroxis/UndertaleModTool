@@ -657,28 +657,18 @@ public partial class Program : IScriptInterface
         string passBack = "";
         GlobalDecompileContext decompileContext = context is null ? new(Data) : context;
 
-        if (!Data.ToolInfo.ProfileMode)
+        try
         {
-            try
-            {
-                // It would just be recompiling an empty string and messing with null entries seems bad
-                if (code is null)
-                    return;
-                string originalCode = new Underanalyzer.Decompiler.DecompileContext(decompileContext, code, settings ?? Data.ToolInfo.DecompilerSettings).DecompileToString();
-                passBack = GetPassBack(originalCode, keyword, replacement, caseSensitive, isRegex);
-                // No need to compile something unchanged
-                if (passBack == originalCode)
-                    return;
-                code.ReplaceGML(passBack, Data);
-            }
-            catch (Exception exc)
-            {
-                throw new Exception("Error during GML code replacement:\n" + exc);
-            }
+            string originalCode = new Underanalyzer.Decompiler.DecompileContext(decompileContext, code, settings ?? Data.ToolInfo.DecompilerSettings).DecompileToString();
+            passBack = GetPassBack(originalCode, keyword, replacement, caseSensitive, isRegex);
+            // No need to compile something unchanged
+            if (passBack == originalCode)
+                return;
+            code.ReplaceGML(passBack, Data);
         }
-        else
+        catch (Exception exc)
         {
-            throw new Exception("This UndertaleData is set to use profile mode, but UndertaleModCLI does not support profile mode.");
+            throw new Exception("Error during GML code replacement:\n" + exc);
         }
     }
 
@@ -1172,7 +1162,7 @@ public partial class Program : IScriptInterface
                 var instructions = Assembler.Assemble(gmlCode, Data);
                 code.Replace(instructions);
                 if (destroyASM)
-                    NukeProfileGML(codeName);
+                    code.GML = null;
             }
         }
         catch (Exception ex)

@@ -49,9 +49,6 @@ namespace UndertaleModTool
         public UndertaleCode CurrentDisassembled = null;
         public UndertaleCode CurrentDecompiled = null;
         public List<string> CurrentLocals = new();
-        public string ProfileHash = mainWindow.ProfileHash;
-        public string MainPath = Path.Combine(Settings.ProfilesFolder, mainWindow.ProfileHash, "Main");
-        public string TempPath = Path.Combine(Settings.ProfilesFolder, mainWindow.ProfileHash, "Temp");
 
         public bool DecompiledFocused = false;
         public bool DecompiledChanged = false;
@@ -778,8 +775,7 @@ namespace UndertaleModTool
                             string line;
                             while ((line = decompLinesReader.ReadLine()) is not null)
                             {
-                                // Not `currRegex.Match()`, because one line could contain several calls
-                                // if the "Profile mode" is enabled.
+                                // Not `currRegex.Match()`, because one line could contain several calls.
                                 var matches = currRegex.Matches(line).Where(m => m.Success).ToArray();
                                 if (matches.Length > 0)
                                 {
