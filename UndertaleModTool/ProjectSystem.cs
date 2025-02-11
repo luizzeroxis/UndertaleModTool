@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using System.IO;
 using Microsoft.Win32;
+using UndertaleModLib.Models;
 
 namespace UndertaleModTool
 {
@@ -45,12 +46,26 @@ namespace UndertaleModTool
             string dataPath = Path.Join(projectPath, projectMetadata.DataFileName);
             await LoadFile(dataPath, true);
 
+            // Load Code folder
+            string codePath = Path.Join(projectPath, "Code");
+
+            foreach (UndertaleCode code in Data.Code)
+            {
+                if (code is not null && code.ParentEntry == null)
+                {
+                    string codeGMLPath = Path.Join(codePath, code.Name.Content + ".gml");
+                    if (File.Exists(codeGMLPath))
+                        code.GML = await File.ReadAllTextAsync(codeGMLPath);
+                }
+            }
+
             ProjectPath = projectPath;
         }
 
         public async void SaveProject(bool saveAs)
         {
-            string projectPathPrevious = saveAs ? null : ProjectPath;
+            // If save as, always creating new folder. If not, then override folder only if there is a project already.
+            bool overridingExisting = saveAs ? false : (ProjectPath != null);
             string projectPath = ProjectPath;
 
             // From Command_Save:
@@ -67,7 +82,7 @@ namespace UndertaleModTool
                 }
             }
 
-            if (projectPathPrevious == null)
+            if (!overridingExisting)
             {
                 while (true)
                 {
@@ -89,14 +104,14 @@ namespace UndertaleModTool
             string dataPathPrevious = null;
             string dataPathPreviousBackup = null;
 
-            if (projectPathPrevious != null)
+            if (overridingExisting)
             {
-                ProjectMetadata projectMetadataPrevious = await LoadProjectMetadata(projectPathPrevious);
+                ProjectMetadata projectMetadataPrevious = await LoadProjectMetadata(projectPath);
                 if (projectMetadataPrevious == null)
                     return;
 
                 // Backup previous data file
-                dataPathPrevious = Path.Join(projectPathPrevious, projectMetadataPrevious.DataFileName);
+                dataPathPrevious = Path.Join(projectPath, projectMetadataPrevious.DataFileName);
                 dataPathPreviousBackup = dataPathPrevious + "bak";
 
                 if (File.Exists(dataPathPreviousBackup))
@@ -115,7 +130,7 @@ namespace UndertaleModTool
             string dataPath = Path.Join(projectPath, projectMetadata.DataFileName);
             if (!await SaveFile(dataPath))
             {
-                if (projectPathPrevious != null)
+                if (overridingExisting)
                 {
                     // If overriding, recover backup of data file
                     File.Move(dataPathPreviousBackup, dataPathPrevious);
@@ -123,11 +138,30 @@ namespace UndertaleModTool
                 return;
             }
 
-            if (projectPathPrevious != null)
+            if (overridingExisting)
             {
                 // Delete backup of previous data file
                 if (File.Exists(dataPathPreviousBackup))
                     File.Delete(dataPathPreviousBackup);
+            }
+
+            string codePath = Path.Join(projectPath, "Code");
+
+            // TODO: make this safer
+            // Delete Code folder
+            if (overridingExisting)
+            {
+                if (Directory.Exists(codePath))
+                    Directory.Delete(codePath, true);
+            }
+
+            // Create Code folder
+            Directory.CreateDirectory(codePath);
+
+            foreach (UndertaleCode code in Data.Code)
+            {
+                if (code is not null && code.ParentEntry == null && code.GML != null)
+                    await File.WriteAllTextAsync(Path.Join(codePath, code.Name.Content + ".gml"), code.GML);
             }
 
             // Save project metadata file

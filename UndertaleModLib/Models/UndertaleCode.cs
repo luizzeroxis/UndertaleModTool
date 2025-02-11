@@ -1387,6 +1387,13 @@ public class UndertaleCode : UndertaleNamedResource, UndertaleObjectWithBlobs, I
     public UndertaleCode ParentEntry { get; set; } = null;
     public List<UndertaleCode> ChildEntries { get; set; } = new List<UndertaleCode>();
 
+    /// <summary>
+    /// User written GML code.
+    /// Null if user hasn't changed it from the decompiled version.
+    /// Stored only when using a project, not in the data file.
+    /// </summary>
+    public string GML = null;
+
     internal uint _bytecodeAbsoluteAddress;
     internal byte[] _unsupportedBuffer;
 

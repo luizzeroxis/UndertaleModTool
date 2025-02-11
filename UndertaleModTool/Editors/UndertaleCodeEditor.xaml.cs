@@ -259,8 +259,7 @@ namespace UndertaleModTool
         private async void TabControl_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             UndertaleCode code = this.DataContext as UndertaleCode;
-            Directory.CreateDirectory(MainPath);
-            Directory.CreateDirectory(TempPath);
+
             if (code == null)
                 return;
 
@@ -564,32 +563,13 @@ namespace UndertaleModTool
             gettext = new Dictionary<string, string>();
             string[] decompilationOutput;
             GlobalDecompileContext context = new(data);
-            if (!SettingsWindow.ProfileModeEnabled)
-            {
+
+            if (gettextCode.GML != null)
+                decompilationOutput = gettextCode.GML.Replace("\r\n", "\n").Split('\n');
+            else
                 decompilationOutput = new Underanalyzer.Decompiler.DecompileContext(context, gettextCode, data.ToolInfo.DecompilerSettings)
                     .DecompileToString().Split('\n');
-            }
-            else
-            {
-                string path = Path.Combine(TempPath, gettextCode.Name.Content + ".gml");
-                if (File.Exists(path))
-                {
-                    try
-                    {
-                        decompilationOutput = File.ReadAllText(path).Replace("\r\n", "\n").Split('\n');
-                    }
-                    catch
-                    {
-                        decompilationOutput = new Underanalyzer.Decompiler.DecompileContext(context, gettextCode, data.ToolInfo.DecompilerSettings)
-                            .DecompileToString().Split('\n');
-                    }
-                }
-                else
-                {
-                    decompilationOutput = new Underanalyzer.Decompiler.DecompileContext(context, gettextCode, data.ToolInfo.DecompilerSettings)
-                        .DecompileToString().Split('\n');
-                }
-            }
+
             Regex textdataRegex = new("^ds_map_add\\(global\\.text_data_en, \\\"(.*)\\\", \\\"(.*)\\\"\\)", RegexOptions.Compiled);
             Regex textdataRegex2 = new("^ds_map_add\\(global\\.text_data_en, \\\"(.*)\\\", '(.*)'\\)", RegexOptions.Compiled);
             foreach (var line in decompilationOutput)
@@ -738,17 +718,17 @@ namespace UndertaleModTool
                     GlobalDecompileContext context = new(dataa);
                     string decompiled = null;
                     Exception e = null;
+
                     try
                     {
-                        string path = Path.Combine(TempPath, code.Name.Content + ".gml");
-                        if (!SettingsWindow.ProfileModeEnabled || !File.Exists(path))
+                        if (code.GML is null)
                         {
                             decompiled = new Underanalyzer.Decompiler.DecompileContext(context, code, dataa.ToolInfo.DecompilerSettings)
                                 .DecompileToString();
                         }
                         else
                         {
-                            decompiled = File.ReadAllText(path);
+                            decompiled = code.GML;
                         }
                     }
                     catch (Exception ex)
@@ -991,27 +971,8 @@ namespace UndertaleModTool
             }
 
             code.Replace(compileContext.ResultAssembly);
-            try
-            {
-                string path = Path.Combine(TempPath, code.Name.Content + ".gml");
-                if (SettingsWindow.ProfileModeEnabled)
-                {
-                    // Write text, only if in the profile mode.
-                    File.WriteAllText(path, DecompiledEditor.Text);
-                }
-                else
-                {
-                    // Destroy file with comments if it's been edited outside the profile mode.
-                    // We're dealing with the decompiled code only, it has to happen.
-                    // Otherwise it will cause a desync, which is more important to prevent.
-                    if (File.Exists(path))
-                        File.Delete(path);
-                }
-            }
-            catch (Exception exc)
-            {
-                mainWindow.ShowError("Error during writing of GML code to profile:\n" + exc);
-            }
+
+            code.GML = DecompiledEditor.Text;
 
             // Invalidate gettext if necessary
             if (code.Name.Content == "gml_Script_textdata_en")
@@ -1086,7 +1047,8 @@ namespace UndertaleModTool
             {
                 var instructions = Assembler.Assemble(DisassemblyEditor.Text, data);
                 code.Replace(instructions);
-                mainWindow.NukeProfileGML(code.Name.Content);
+                // TODO: Maybe a warning that the code is going to be deleted?
+                code.GML = null;
             }
             catch (Exception ex)
             {
