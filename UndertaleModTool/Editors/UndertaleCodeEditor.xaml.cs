@@ -1038,6 +1038,13 @@ namespace UndertaleModTool
                     return;
             }
 
+            if (mainWindow.ShowQuestion("Editing the disassembly will delete user GML, reverting it back to a decompiled version." +
+                "Are you sure you want to save these changes?") != MessageBoxResult.Yes)
+            {
+                //DisassembleCode(code, false);
+                return;
+            }
+
             UndertaleData data = mainWindow.Data;
             try
             {

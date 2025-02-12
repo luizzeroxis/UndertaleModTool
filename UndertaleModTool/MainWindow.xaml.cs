@@ -754,8 +754,7 @@ namespace UndertaleModTool
 
             if (dlg.ShowDialog(this) == true)
             {
-                await SaveFile(dlg.FileName, suppressDebug);
-                return true;
+                return await SaveFile(dlg.FileName, suppressDebug);
             }
             return false;
         }
@@ -807,6 +806,11 @@ namespace UndertaleModTool
             {
                 if (!CanSafelySave)
                     this.ShowWarning("Errors occurred during loading. High chance of data loss! Proceed at your own risk.");
+
+                bool hasGML = Data.Code.Any(code => code.GML != null);
+                if (hasGML)
+                    this.ShowWarning("Saving this data file without it being inside a project will not save user GML, " +
+                        "reverting them back to a decompiled version when you open it again.");
 
                 var result = await SaveCodeChanges();
                 if (result == SaveResult.NotSaved)
@@ -861,7 +865,11 @@ namespace UndertaleModTool
 
                     if (saveRes == SaveResult.NotSaved)
                     {
-                        _ = DoSaveDialog();
+                        if (ProjectPath != null)
+                            await SaveProject(false);
+                        else
+                            if (!await DoSaveDialog())
+                                return;
                     }
                     else if (saveRes == SaveResult.Error)
                     {
@@ -979,7 +987,7 @@ namespace UndertaleModTool
                 GC.Collect();
             }
         }
-        private async Task LoadFile(string filename, bool preventClose = false, bool onlyGeneralInfo = false)
+        private async Task<bool> LoadFile(string filename, bool preventClose = false, bool onlyGeneralInfo = false)
         {
             LoaderDialog dialog = new LoaderDialog("Loading", "Loading, please wait...");
             dialog.PreventClose = preventClose;
@@ -995,7 +1003,7 @@ namespace UndertaleModTool
 
             GameSpecificResolver.BaseDirectory = ExePath;
 
-            Task t = Task.Run(() =>
+            Task<bool> t = Task.Run<bool>(() =>
             {
                 bool hadWarnings = false;
                 UndertaleData data = null;
@@ -1022,7 +1030,7 @@ namespace UndertaleModTool
 #if DEBUG
                     Debug.WriteLine(e);
 #endif
-                    this.ShowError("An error occured while trying to load:\n" + e.Message, "Load error");
+                    this.ShowError("An error occurred while trying to load:\n" + e.Message, "Load error");
                 }
 
                 if (onlyGeneralInfo)
@@ -1034,7 +1042,7 @@ namespace UndertaleModTool
                         FilePath = filename;
                     });
 
-                    return;
+                    return true;
                 }
 
                 Dispatcher.Invoke(async () =>
@@ -1100,20 +1108,24 @@ namespace UndertaleModTool
 
                         UndertaleCodeEditor.gettext = null;
                         UndertaleCodeEditor.gettextJSON = null;
+
+                        ProjectPath = null;
                     }
 
                     dialog.Hide();
                 });
+
+                return (data != null);
             });
             dialog.ShowDialog();
-            await t;
-
-            ProjectPath = null;
+            bool success = await t;
 
             // Clear "GC holes" left in the memory in process of data unserializing
             // https://docs.microsoft.com/en-us/dotnet/api/system.runtime.gcsettings.largeobjectheapcompactionmode?view=net-6.0
             GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
             GC.Collect();
+
+            return success;
         }
 
         private async Task<bool> SaveFile(string filename, bool suppressDebug = false)

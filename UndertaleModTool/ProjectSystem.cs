@@ -44,7 +44,10 @@ namespace UndertaleModTool
 
             // Load data.win
             string dataPath = Path.Join(projectPath, projectMetadata.DataFileName);
-            await LoadFile(dataPath, true);
+            if (!await LoadFile(dataPath, true))
+            {
+                return;
+            }
 
             // Load Code folder
             string codePath = Path.Join(projectPath, "Code");
@@ -62,7 +65,7 @@ namespace UndertaleModTool
             ProjectPath = projectPath;
         }
 
-        public async void SaveProject(bool saveAs)
+        public async Task SaveProject(bool saveAs)
         {
             // If save as, always creating new folder. If not, then override folder only if there is a project already.
             bool overridingExisting = saveAs ? false : (ProjectPath != null);

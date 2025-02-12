@@ -85,8 +85,8 @@
                     </MenuItem>
                     <Separator/>
                     <MenuItem Header="Open project" Click="MenuItem_OpenProject_Click" />
-                    <MenuItem Header="Save project" Click="MenuItem_SaveProject_Click" />
-                    <MenuItem Header="Save project as" Click="MenuItem_SaveProjectAs_Click" />
+                    <MenuItem Header="Save project" Click="MenuItem_SaveProject_Click" IsEnabled="{Binding CanSave}" />
+                    <MenuItem Header="Save project as" Click="MenuItem_SaveProjectAs_Click" IsEnabled="{Binding CanSave}" />
                     <Separator/>
                     <MenuItem Header="_Temp run game" Command="Print" InputGestureText="F5">
                         <!-- TODO: I think I need a custom command for that... -->
