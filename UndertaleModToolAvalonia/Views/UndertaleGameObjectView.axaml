@@ -6,6 +6,7 @@
              xmlns:c="clr-namespace:UndertaleModToolAvalonia.Controls"
              xmlns:h="clr-namespace:UndertaleModToolAvalonia.Helpers"
              xmlns:undertalem="clr-namespace:UndertaleModLib.Models;assembly=UndertaleModLib"
+             xmlns:assets="clr-namespace:UndertaleModToolAvalonia.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.Views.UndertaleGameObjectView"
              x:DataType="v:UndertaleGameObjectViewModel">
@@ -15,77 +16,77 @@
         <h:IdToUndertaleGameObjectConverter x:Key="IdToUndertaleGameObjectConverter" />
     </UserControl.Resources>
     <StackPanel Classes="PaddedProperties">
-        <TextBlock FontWeight="Bold" Text="Game object" />
+        <TextBlock FontWeight="Bold" Text="{x:Static assets:Resources.GameObjectText}" />
         <Separator />
 
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
-            <Label>Name</Label>
+            <Label Content="{x:Static assets:Resources.NameText}" />
             <c:UndertaleStringReferenceView Reference="{Binding GameObject.Name}" />
 
-            <Label>Sprite</Label>
+            <Label Content="{x:Static assets:Resources.SpriteText}" />
             <c:UndertaleResourceReferenceView Reference="{Binding GameObject.Sprite}" ReferenceType="undertalem:UndertaleSprite"/>
 
             <!-- TODO: Show sprite -->
 
-            <Label>Visible</Label>
+            <Label Content="{x:Static assets:Resources.VisibleText}" />
             <CheckBox IsChecked="{Binding GameObject.Visible}"/>
 
-            <Label>Solid</Label>
+            <Label Content="{x:Static assets:Resources.SolidText}" />
             <CheckBox IsChecked="{Binding GameObject.Solid}"/>
 
             <!-- TODO: Visible only in GMS2 -->
-            <Label>Depth</Label>
+            <Label Content="{x:Static assets:Resources.DepthText}" />
             <TextBox Text="{Binding GameObject.Depth}" />
 
-            <Label>Persitent</Label>
+            <Label Content="{x:Static assets:Resources.PersistentText}" />
             <CheckBox IsChecked="{Binding GameObject.Persistent}"/>
 
-            <Label>Parent</Label>
+            <Label Content="{x:Static assets:Resources.ParentText}" />
             <c:UndertaleResourceReferenceView Reference="{Binding GameObject.ParentId}" ReferenceType="undertalem:UndertaleGameObject"/>
 
-            <Label>Texture mask id</Label>
+            <Label Content="{x:Static assets:Resources.TextureMaskIdText}" />
             <c:UndertaleResourceReferenceView Reference="{Binding GameObject.TextureMaskId}" ReferenceType="undertalem:UndertaleSprite"/>
 
-            <Label>Uses physics</Label>
+            <Label Content="{x:Static assets:Resources.UsesPhysicsText}" />
             <CheckBox IsChecked="{Binding GameObject.UsesPhysics}"/>
 
-            <Label>Is sensor</Label>
+            <Label Content="{x:Static assets:Resources.IsSensorText}" />
             <CheckBox IsChecked="{Binding GameObject.IsSensor}"/>
 
-            <Label>Collision shape</Label>
+            <Label Content="{x:Static assets:Resources.CollisionShapeText}" />
             <ComboBox ItemsSource="{Binding Source={x:Type undertalem:CollisionShapeFlags}, Converter={StaticResource EnumTypeToValuesConverter}}"
                       SelectedItem="{Binding GameObject.CollisionShape}" />
         </Grid>
 
-        <TextBlock FontWeight="Bold" Text="Physics" />
+        <TextBlock FontWeight="Bold" Text="{x:Static assets:Resources.PhysicsText}" />
         <Separator />
 
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
-            <Label>Density</Label>
+            <Label Content="{x:Static assets:Resources.DensityText}" />
             <TextBox Text="{Binding GameObject.Density}" />
 
-            <Label>Restitution</Label>
+            <Label Content="{x:Static assets:Resources.RestitutionText}" />
             <TextBox Text="{Binding GameObject.Restitution}" />
 
-            <Label>Group</Label>
+            <Label Content="{x:Static assets:Resources.GroupText}" />
             <TextBox Text="{Binding GameObject.Group}" />
 
-            <Label>Linear damping</Label>
+            <Label Content="{x:Static assets:Resources.LinearDampingText}" />
             <TextBox Text="{Binding GameObject.LinearDamping}" />
 
-            <Label>Angular damping</Label>
+            <Label Content="{x:Static assets:Resources.AngularDampingText}" />
             <TextBox Text="{Binding GameObject.AngularDamping}" />
 
-            <Label>Friction</Label>
+            <Label Content="{x:Static assets:Resources.FrictionText}" />
             <TextBox Text="{Binding GameObject.Friction}" />
 
-            <Label>Is awake</Label>
+            <Label Content="{x:Static assets:Resources.IsAwakeText}" />
             <CheckBox IsChecked="{Binding GameObject.Awake}"/>
 
-            <Label>Is kinematic</Label>
+            <Label Content="{x:Static assets:Resources.IsKinematicText}" />
             <CheckBox IsChecked="{Binding GameObject.Kinematic}"/>
 
-            <Label>Physics shape vertices</Label>
+            <Label Content="{x:Static assets:Resources.PhysicsShapeVerticesText}" />
             <c:EditableDataGrid ItemsSource="{Binding GameObject.PhysicsVertices}" ItemFactory="{Binding CreatePhysicsVertex}">
                 <c:EditableDataGrid.Columns>
                     <DataGridTemplateColumn Header="X" Width="1*">
@@ -106,7 +107,7 @@
             </c:EditableDataGrid>
         </Grid>
 
-        <TextBlock FontWeight="Bold" Text="Events"/>
+        <TextBlock FontWeight="Bold" Text="{x:Static assets:Resources.EventsText}"/>
         <Separator />
 
         <ItemsControl ItemsSource="{Binding GameObject.Events, Converter={StaticResource EventsToExtendedEventConverter}}">
@@ -119,7 +120,7 @@
                                             ItemFactory="{Binding $parent[v:UndertaleGameObjectView].((v:UndertaleGameObjectViewModel)DataContext).CreateEvent}"
                                             BorderThickness="1" BorderBrush="{DynamicResource SystemControlBackgroundListLowBrush}">
                             <c:EditableDataGrid.Columns>
-                                <DataGridTemplateColumn Header="Subtype ID" Width="1*">
+                                <DataGridTemplateColumn Header="{x:Static assets:Resources.SubtypeIDText}" Width="1*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate DataType="undertalem:UndertaleGameObject+Event">
                                             <ContentControl x:Name="Event" Content="{Binding #ExtendedEvent.((h:ExtendedEvent)DataContext).EventType}">
@@ -193,13 +194,13 @@
                                         </DataTemplate>
                                     </DataGridTemplateColumn.CellTemplate>
                                 </DataGridTemplateColumn>
-                                <DataGridTemplateColumn Header="Actions" Width="3*">
+                                <DataGridTemplateColumn Header="{x:Static assets:Resources.ActionsText}" Width="3*">
                                     <DataGridTemplateColumn.CellTemplate>
                                         <DataTemplate DataType="undertalem:UndertaleGameObject+Event">
                                             <c:EditableDataGrid ItemsSource="{Binding Actions}"
                                                                 ItemFactory="{Binding $parent[v:UndertaleGameObjectView].((v:UndertaleGameObjectViewModel)DataContext).CreateEventAction}">
                                                 <c:EditableDataGrid.Columns>
-                                                    <DataGridTemplateColumn Header="Code" Width="1*">
+                                                    <DataGridTemplateColumn Header="{x:Static assets:Resources.CodeText}" Width="1*">
                                                         <DataGridTemplateColumn.CellTemplate>
                                                             <DataTemplate DataType="undertalem:UndertaleGameObject+EventAction">
                                                                 <c:UndertaleResourceReferenceView Reference="{Binding CodeId}" ReferenceType="{x:Type undertalem:UndertaleCode}" />

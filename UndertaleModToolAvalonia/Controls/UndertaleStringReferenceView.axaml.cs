@@ -73,7 +73,7 @@ public partial class UndertaleStringReferenceView : UserControl
 
     void UpdateTextBoxWatermark()
     {
-        this.Find<TextBox>("TextBox")!.Watermark = (Reference is null) ? "(UndertaleString reference)" : "";
+        this.Find<TextBox>("TextBox")!.Watermark = (Reference is null) ? Assets.Resources.UndertaleStringReferenceText : "";
     }
 }
 

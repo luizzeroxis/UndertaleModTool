@@ -222,7 +222,6 @@ public class UndertaleInstruction : UndertaleObject, IGMInstruction
         Stacktop = -9,
         Arg = -15,
         Static = -16
-
         // anything > 0 => GameObjectIndex
     }
 

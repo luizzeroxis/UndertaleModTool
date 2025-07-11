@@ -1,0 +1,1008 @@
+<root>
+    <resheader name="resmimetype">
+        <value>text/microsoft-resx</value>
+    </resheader>
+    <resheader name="version">
+        <value>1.3</value>
+    </resheader>
+    <resheader name="reader">
+        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <resheader name="writer">
+        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+    </resheader>
+    <data name="DarkText" xml:space="preserve">
+        <value>深色</value>
+    </data>
+    <data name="LanguageText" xml:space="preserve">
+        <value>语言</value>
+    </data>
+    <data name="LightText" xml:space="preserve">
+        <value>浅色</value>
+    </data>
+    <data name="SystemDefaultText" xml:space="preserve">
+        <value>跟随系统</value>
+    </data>
+    <data name="ThemeText" xml:space="preserve">
+        <value>主题色：</value>
+    </data>
+    <data name="LanguageChangedTitle" xml:space="preserve">
+        <value>语言已更改</value>
+    </data>
+    <data name="WelcomeText" xml:space="preserve">
+        <value>欢迎使用 UndertaleModTool！</value>
+    </data>
+    <data name="RestartToApplyNewLanguageText" xml:space="preserve">
+        <value>要重启 UndertaleModTool 以应用新的语言设置吗？</value>
+    </data>
+    <data name="WelcomeDescription" xml:space="preserve">
+        <value>请打开一个 data.win 文件并在左侧侧栏中选择一个项目开始浏览。</value>
+    </data>
+    <data name="FilterByNameText" xml:space="preserve">
+        <value>按名称筛选……</value>
+    </data>
+    <data name="FileMenuText" xml:space="preserve">
+        <value>文件(_F)</value>
+    </data>
+    <data name="FileNewText" xml:space="preserve">
+        <value>新建(_N)</value>
+    </data>
+    <data name="FileOpenText" xml:space="preserve">
+        <value>打开(_O)</value>
+    </data>
+    <data name="FileSaveText" xml:space="preserve">
+        <value>保存(_S)</value>
+    </data>
+    <data name="TempRunGameText" xml:space="preserve">
+        <value>临时运行游戏(_T)</value>
+    </data>
+    <data name="RunGameUnderDebuggerText" xml:space="preserve">
+        <value>使用 GMS 调试器运行游戏(_D)</value>
+    </data>
+    <data name="RunGameWithOtherRunnerText" xml:space="preserve">
+        <value>使用其他 Runner 运行游戏</value>
+    </data>
+    <data name="GenerateOffsetMapText" xml:space="preserve">
+        <value>生成偏移映射(_F)</value>
+    </data>
+    <data name="SettingsText" xml:space="preserve">
+        <value>设置</value>
+    </data>
+    <data name="FileCloseText" xml:space="preserve">
+        <value>关闭(_C)</value>
+    </data>
+    <data name="ScriptMenuText" xml:space="preserve">
+        <value>脚本(_S)</value>
+    </data>
+    <data name="FindMenuText" xml:space="preserve">
+        <value>查找(_F)</value>
+    </data>
+    <data name="SearchInCodeText" xml:space="preserve">
+        <value>在代码中查找(_S)</value>
+    </data>
+    <data name="FindUnreferencedAssetsText" xml:space="preserve">
+        <value>查找未引用资源(_A)</value>
+    </data>
+    <data name="HelpMenuText" xml:space="preserve">
+        <value>帮助(_H)</value>
+    </data>
+    <data name="AboutText" xml:space="preserve">
+        <value>关于</value>
+    </data>
+    <data name="GitHubText" xml:space="preserve">
+        <value>_GitHub</value>
+    </data>
+    <data name="GeneralInfoText" xml:space="preserve">
+        <value>常规信息</value>
+    </data>
+    <data name="GlobalInitText" xml:space="preserve">
+        <value>全局初始化</value>
+    </data>
+    <data name="GameEndScriptsText" xml:space="preserve">
+        <value>游戏结束脚本</value>
+    </data>
+    <data name="AudioGroupsText" xml:space="preserve">
+        <value>音效组</value>
+    </data>
+    <data name="SoundsText" xml:space="preserve">
+        <value>音效</value>
+    </data>
+    <data name="SpritesText" xml:space="preserve">
+        <value>精灵</value>
+    </data>
+    <data name="BackgroundsText" xml:space="preserve">
+        <value>背景</value>
+    </data>
+    <data name="PathsText" xml:space="preserve">
+        <value>路径</value>
+    </data>
+    <data name="ScriptsText" xml:space="preserve">
+        <value>脚本</value>
+    </data>
+    <data name="ShadersText" xml:space="preserve">
+        <value>着色器</value>
+    </data>
+    <data name="FontsText" xml:space="preserve">
+        <value>字体</value>
+    </data>
+    <data name="TimelinesText" xml:space="preserve">
+        <value>时间线</value>
+    </data>
+    <data name="GameObjectsText" xml:space="preserve">
+        <value>游戏对象</value>
+    </data>
+    <data name="RoomsText" xml:space="preserve">
+        <value>房间</value>
+    </data>
+    <data name="ExtensionsText" xml:space="preserve">
+        <value>扩展</value>
+    </data>
+    <data name="TexturePageItemsText" xml:space="preserve">
+        <value>纹理页元素</value>
+    </data>
+    <data name="CodeText" xml:space="preserve">
+        <value>代码</value>
+    </data>
+    <data name="VariablesText" xml:space="preserve">
+        <value>变量</value>
+    </data>
+    <data name="FunctionsText" xml:space="preserve">
+        <value>函数</value>
+    </data>
+    <data name="CodeLocalsText" xml:space="preserve">
+        <value>局部变量</value>
+    </data>
+    <data name="StringsText" xml:space="preserve">
+        <value>字符串</value>
+    </data>
+    <data name="EmbeddedTexturesText" xml:space="preserve">
+        <value>内嵌纹理</value>
+    </data>
+    <data name="EmbeddedAudioText" xml:space="preserve">
+        <value>内嵌音频</value>
+    </data>
+    <data name="TextureGroupInformationText" xml:space="preserve">
+        <value>纹理组信息</value>
+    </data>
+    <data name="EmbeddedImagesText" xml:space="preserve">
+        <value>内嵌图像</value>
+    </data>
+    <data name="ParticleSystemsText" xml:space="preserve">
+        <value>粒子系统</value>
+    </data>
+    <data name="ParticleSystemEmittersText" xml:space="preserve">
+        <value>粒子发射源</value>
+    </data>
+    <data name="GlobalInitScriptsText" xml:space="preserve">
+        <value>全局初始化脚本</value>
+    </data>
+    <data name="ImportMenuText" xml:space="preserve">
+        <value>导入(_I)</value>
+    </data>
+    <data name="ToolsMenuText" xml:space="preserve">
+        <value>工具(_T)</value>
+    </data>
+    <data name="ExportMenuText" xml:space="preserve">
+        <value>导出(_E)</value>
+    </data>
+    <data name="NameText" xml:space="preserve">
+        <value>名称</value>
+    </data>
+    <data name="ListText" xml:space="preserve">
+        <value>列表</value>
+    </data>
+    <data name="GroupNameText" xml:space="preserve">
+        <value>组名</value>
+    </data>
+    <data name="BackgroundText" xml:space="preserve">
+        <value>背景</value>
+    </data>
+    <data name="SplinesText" xml:space="preserve">
+        <value>图块集</value>
+    </data>
+    <data name="OpenText" xml:space="preserve">
+        <value>打开</value>
+    </data>
+    <data name="UndertaleStringReferenceText" xml:space="preserve">
+        <value>(UndertaleString 引用)</value>
+    </data>
+    <data name="SpineSpritesText" xml:space="preserve">
+        <value>Spine 精灵</value>
+    </data>
+    <data name="InstanceTypeText" xml:space="preserve">
+        <value>实例类型</value>
+    </data>
+    <data name="VarIDText" xml:space="preserve">
+        <value>变量 ID</value>
+    </data>
+    <data name="NameStringIDText" xml:space="preserve">
+        <value>名称字符串 ID</value>
+    </data>
+    <data name="ContentText" xml:space="preserve">
+        <value>内容</value>
+    </data>
+    <data name="TypeText" xml:space="preserve">
+        <value>类型</value>
+    </data>
+    <data name="EffectsText" xml:space="preserve">
+        <value>效果</value>
+    </data>
+    <data name="VolumeText" xml:space="preserve">
+        <value>音量</value>
+    </data>
+    <data name="PitchText" xml:space="preserve">
+        <value>音高</value>
+    </data>
+    <data name="AudioGroupText" xml:space="preserve">
+        <value>音频组</value>
+    </data>
+    <data name="AudioFileText" xml:space="preserve">
+        <value>音频文件</value>
+    </data>
+    <data name="PreloadText" xml:space="preserve">
+        <value>预加载 (旧版音频系统)</value>
+    </data>
+    <data name="FlagsText" xml:space="preserve">
+        <value>标签</value>
+    </data>
+    <data name="FileText" xml:space="preserve">
+        <value>文件</value>
+    </data>
+    <data name="RemoveText" xml:space="preserve">
+        <value>移除</value>
+    </data>
+    <data name="TypeReferenceText" xml:space="preserve">
+        <value>（{0} 引用）</value>
+    </data>
+    <data name="VersionText" xml:space="preserve">
+        <value>版本</value>
+    </data>
+    <data name="GLSLESVertexSourceText" xml:space="preserve">
+        <value>GLSL ES 顶点源</value>
+    </data>
+    <data name="GLSLESFragmentSourceText" xml:space="preserve">
+        <value>GLSL ES 片元源</value>
+    </data>
+    <data name="GLSLVertexSourceText" xml:space="preserve">
+        <value>GLSL 顶点源</value>
+    </data>
+    <data name="GLSLFragmentSourceText" xml:space="preserve">
+        <value>GLSL 片元源</value>
+    </data>
+    <data name="CodeHeaderText" xml:space="preserve">
+        <value>代码</value>
+    </data>
+    <data name="HLSL9VertexSourceText" xml:space="preserve">
+        <value>HLSL9 顶点源</value>
+    </data>
+    <data name="HLSL9FragmentSourceText" xml:space="preserve">
+        <value>HLSL9 片元源</value>
+    </data>
+    <data name="HLSL11VertexDataText" xml:space="preserve">
+        <value>HLSL11 顶点数据</value>
+    </data>
+    <data name="HLSL11PixelDataText" xml:space="preserve">
+        <value>HLSL11 像素数据</value>
+    </data>
+    <data name="PSSLVertexDataText" xml:space="preserve">
+        <value>PSSL 顶点数据</value>
+    </data>
+    <data name="PSSLPixelDataText" xml:space="preserve">
+        <value>PSSL 像素数据</value>
+    </data>
+    <data name="CgPSVitaVertexDataText" xml:space="preserve">
+        <value>Cg__PSVita 顶点数据</value>
+    </data>
+    <data name="CgPSVitaPixelDataText" xml:space="preserve">
+        <value>Cg__PSVita 像素数据</value>
+    </data>
+    <data name="CgPS3VertexDataText" xml:space="preserve">
+        <value>Cg__PS3 顶点数据</value>
+    </data>
+    <data name="CgPS3PixelDataText" xml:space="preserve">
+        <value>Cg__PS3 像素数据</value>
+    </data>
+    <data name="ImportText" xml:space="preserve">
+        <value>导入</value>
+    </data>
+    <data name="ExportText" xml:space="preserve">
+        <value>导出</value>
+    </data>
+    <data name="VertexShaderAttributesText" xml:space="preserve">
+        <value>顶点着色器属性</value>
+    </data>
+    <data name="ViewText" xml:space="preserve">
+        <value>视图</value>
+    </data>
+    <data name="ViewsText" xml:space="preserve">
+        <value>视图</value>
+    </data>
+    <data name="LegacyTilesText" xml:space="preserve">
+        <value>传统图块</value>
+    </data>
+    <data name="SequencesText" xml:space="preserve">
+        <value>序列</value>
+    </data>
+    <data name="TextItemsText" xml:space="preserve">
+        <value>文本项</value>
+    </data>
+    <data name="LayersText" xml:space="preserve">
+        <value>图层</value>
+    </data>
+    <data name="CaptionText" xml:space="preserve">
+        <value>标题</value>
+    </data>
+    <data name="WidthHeightText" xml:space="preserve">
+        <value>宽度/高度</value>
+    </data>
+    <data name="SpeedText" xml:space="preserve">
+        <value>速度</value>
+    </data>
+    <data name="PersistentText" xml:space="preserve">
+        <value>持久化</value>
+    </data>
+    <data name="BackgroundColorText" xml:space="preserve">
+        <value>背景颜色</value>
+    </data>
+    <data name="DrawBackgroundColorText" xml:space="preserve">
+        <value>绘制背景颜色</value>
+    </data>
+    <data name="CreationCodeText" xml:space="preserve">
+        <value>创建代码</value>
+    </data>
+    <data name="WorldText" xml:space="preserve">
+        <value>世界</value>
+    </data>
+    <data name="TopLeftRightBottomText" xml:space="preserve">
+        <value>上/左/右/下</value>
+    </data>
+    <data name="GravityXYText" xml:space="preserve">
+        <value>重力 X/Y</value>
+    </data>
+    <data name="TilesText" xml:space="preserve">
+        <value>图块</value>
+    </data>
+    <data name="EnabledText" xml:space="preserve">
+        <value>启用</value>
+    </data>
+    <data name="ForegroundText" xml:space="preserve">
+        <value>前景</value>
+    </data>
+    <data name="DefinitionText" xml:space="preserve">
+        <value>定义</value>
+    </data>
+    <data name="PositionXYText" xml:space="preserve">
+        <value>位置 (X/Y)</value>
+    </data>
+    <data name="TilingText" xml:space="preserve">
+        <value>平铺</value>
+    </data>
+    <data name="HorizontalText" xml:space="preserve">
+        <value>水平</value>
+    </data>
+    <data name="VerticalText" xml:space="preserve">
+        <value>垂直</value>
+    </data>
+    <data name="SpeedXYText" xml:space="preserve">
+        <value>速度 (X/Y)</value>
+    </data>
+    <data name="StretchText" xml:space="preserve">
+        <value>拉伸</value>
+    </data>
+    <data name="ViewXYWHText" xml:space="preserve">
+        <value>视图 X/Y/宽/高</value>
+    </data>
+    <data name="PortXYWHText" xml:space="preserve">
+        <value>端口 X/Y/宽/高</value>
+    </data>
+    <data name="BorderText" xml:space="preserve">
+        <value>边框</value>
+    </data>
+    <data name="FollowsObjectText" xml:space="preserve">
+        <value>跟随对象</value>
+    </data>
+    <data name="InstanceIDText" xml:space="preserve">
+        <value>实例 ID</value>
+    </data>
+    <data name="ScaleXYText" xml:space="preserve">
+        <value>缩放 X/Y</value>
+    </data>
+    <data name="ColorText" xml:space="preserve">
+        <value>颜色</value>
+    </data>
+    <data name="RotationText" xml:space="preserve">
+        <value>旋转</value>
+    </data>
+    <data name="FrameIndexText" xml:space="preserve">
+        <value>帧索引</value>
+    </data>
+    <data name="ImageSpeedText" xml:space="preserve">
+        <value>图像速度</value>
+    </data>
+    <data name="PreCreateCodeText" xml:space="preserve">
+        <value>预创建代码</value>
+    </data>
+    <data name="SourceXYWHText" xml:space="preserve">
+        <value>源 X/Y/W/H</value>
+    </data>
+    <data name="TileDepthText" xml:space="preserve">
+        <value>深度</value>
+    </data>
+    <data name="LayerNameText" xml:space="preserve">
+        <value>图层名称</value>
+    </data>
+    <data name="LayerIdText" xml:space="preserve">
+        <value>图层 ID</value>
+    </data>
+    <data name="LayerTypeText" xml:space="preserve">
+        <value>图层类型</value>
+    </data>
+    <data name="LayerDepthText" xml:space="preserve">
+        <value>深度</value>
+    </data>
+    <data name="VisibleText" xml:space="preserve">
+        <value>可见</value>
+    </data>
+    <data name="OffsetXYText" xml:space="preserve">
+        <value>偏移 X/Y</value>
+    </data>
+    <data name="SpriteText" xml:space="preserve">
+        <value>精灵</value>
+    </data>
+    <data name="AnimationSpeedText" xml:space="preserve">
+        <value>动画速度</value>
+    </data>
+    <data name="AutoText" xml:space="preserve">
+        <value>自动</value>
+    </data>
+    <data name="ContainsGameObjectInstancesText" xml:space="preserve">
+        <value>包含 GameObject 实例，显示在左侧侧栏中。</value>
+    </data>
+    <data name="ContainsLegacyTilesAndSpritesText" xml:space="preserve">
+        <value>包含旧版图块和精灵，显示在左侧侧栏中。</value>
+    </data>
+    <data name="EffectText" xml:space="preserve">
+        <value>效果。</value>
+    </data>
+    <data name="FirstFrameText" xml:space="preserve">
+        <value>首帧</value>
+    </data>
+    <data name="SizeText" xml:space="preserve">
+        <value>大小</value>
+    </data>
+    <data name="SpeedHVText" xml:space="preserve">
+        <value>速度 H/V</value>
+    </data>
+    <data name="TileSetText" xml:space="preserve">
+        <value>图块集</value>
+    </data>
+    <data name="Visible2Text" xml:space="preserve">
+        <value>可见 2</value>
+    </data>
+    <data name="SmoothText" xml:space="preserve">
+        <value>平滑</value>
+    </data>
+    <data name="PointsPosText" xml:space="preserve">
+        <value>点坐标</value>
+    </data>
+    <data name="PrecisionText" xml:space="preserve">
+        <value>精度</value>
+    </data>
+    <data name="ClosedText" xml:space="preserve">
+        <value>闭合</value>
+    </data>
+    <data name="OriginXYText" xml:space="preserve">
+        <value>原点 (X/Y)</value>
+    </data>
+    <data name="DrawOrderText" xml:space="preserve">
+        <value>绘制顺序</value>
+    </data>
+    <data name="GlobalSpaceParticlesText" xml:space="preserve">
+        <value>全局空间粒子</value>
+    </data>
+    <data name="EmittersText" xml:space="preserve">
+        <value>发射源</value>
+    </data>
+    <data name="PathText" xml:space="preserve">
+        <value>路径</value>
+    </data>
+    <data name="EmitRelativeText" xml:space="preserve">
+        <value>相对发射</value>
+    </data>
+    <data name="DelayMinMaxText" xml:space="preserve">
+        <value>延迟 (最小/最大)</value>
+    </data>
+    <data name="DelayTimeUnitText" xml:space="preserve">
+        <value>延迟时间单位</value>
+    </data>
+    <data name="IntervalMinMaxText" xml:space="preserve">
+        <value>间隔 (最小/最大)</value>
+    </data>
+    <data name="IntervalTimeUnitText" xml:space="preserve">
+        <value>间隔时间单位</value>
+    </data>
+    <data name="DistributionText" xml:space="preserve">
+        <value>分布</value>
+    </data>
+    <data name="ShapeText" xml:space="preserve">
+        <value>形状</value>
+    </data>
+    <data name="RegionXYWHText" xml:space="preserve">
+        <value>区域 (X/Y/宽/高)</value>
+    </data>
+    <data name="AnimateSpriteText" xml:space="preserve">
+        <value>精灵动画</value>
+    </data>
+    <data name="RandomText" xml:space="preserve">
+        <value>随机</value>
+    </data>
+    <data name="TextureText" xml:space="preserve">
+        <value>纹理</value>
+    </data>
+    <data name="StartColorText" xml:space="preserve">
+        <value>起始颜色</value>
+    </data>
+    <data name="MiddleColorText" xml:space="preserve">
+        <value>中间颜色</value>
+    </data>
+    <data name="EndColorText" xml:space="preserve">
+        <value>结束颜色</value>
+    </data>
+    <data name="AdditiveColorBlendText" xml:space="preserve">
+        <value>颜色叠加混合</value>
+    </data>
+    <data name="LifetimeMinMaxText" xml:space="preserve">
+        <value>生命周期 (最小/最大)</value>
+    </data>
+    <data name="SizeMinXYText" xml:space="preserve">
+        <value>最小尺寸 (X/Y)</value>
+    </data>
+    <data name="SizeMaxXYText" xml:space="preserve">
+        <value>最大尺寸 (X/Y)</value>
+    </data>
+    <data name="SizeIncreaseXYText" xml:space="preserve">
+        <value>尺寸增量 (X/Y)</value>
+    </data>
+    <data name="SizeWiggleXYText" xml:space="preserve">
+        <value>尺寸抖动 (X/Y)</value>
+    </data>
+    <data name="SpeedMinMaxText" xml:space="preserve">
+        <value>速度（最小/最大）</value>
+    </data>
+    <data name="SpeedIncreaseText" xml:space="preserve">
+        <value>速度增量</value>
+    </data>
+    <data name="SpeedWiggleText" xml:space="preserve">
+        <value>速度抖动</value>
+    </data>
+    <data name="GravityForceText" xml:space="preserve">
+        <value>重力强度</value>
+    </data>
+    <data name="GravityDirectionText" xml:space="preserve">
+        <value>重力方向</value>
+    </data>
+    <data name="DirectionMinMaxText" xml:space="preserve">
+        <value>方向（最小/最大）</value>
+    </data>
+    <data name="DirectionIncreaseText" xml:space="preserve">
+        <value>方向增量</value>
+    </data>
+    <data name="DirectionWiggleText" xml:space="preserve">
+        <value>方向抖动</value>
+    </data>
+    <data name="OrientationMinMaxText" xml:space="preserve">
+        <value>朝向 (最小/最大)</value>
+    </data>
+    <data name="OrientationIncreaseText" xml:space="preserve">
+        <value>朝向增量</value>
+    </data>
+    <data name="OrientationWiggleText" xml:space="preserve">
+        <value>朝向抖动</value>
+    </data>
+    <data name="IsOrientationRelativeText" xml:space="preserve">
+        <value>相对朝向</value>
+    </data>
+    <data name="SpawnOnDeathText" xml:space="preserve">
+        <value>死亡时生成</value>
+    </data>
+    <data name="SpawnOnDeathCountText" xml:space="preserve">
+        <value>死亡生成数量</value>
+    </data>
+    <data name="SpawnOnUpdateText" xml:space="preserve">
+        <value>更新时生成</value>
+    </data>
+    <data name="SpawnOnUpdateCountText" xml:space="preserve">
+        <value>更新生成数量</value>
+    </data>
+    <data name="GameObjectText" xml:space="preserve">
+        <value>游戏对象</value>
+    </data>
+    <data name="SolidText" xml:space="preserve">
+        <value>实体</value>
+    </data>
+    <data name="DepthText" xml:space="preserve">
+        <value>深度</value>
+    </data>
+    <data name="ParentText" xml:space="preserve">
+        <value>父对象</value>
+    </data>
+    <data name="TextureMaskIdText" xml:space="preserve">
+        <value>纹理遮罩 ID</value>
+    </data>
+    <data name="UsesPhysicsText" xml:space="preserve">
+        <value>使用物理</value>
+    </data>
+    <data name="IsSensorText" xml:space="preserve">
+        <value>传感器</value>
+    </data>
+    <data name="CollisionShapeText" xml:space="preserve">
+        <value>碰撞形状</value>
+    </data>
+    <data name="PhysicsText" xml:space="preserve">
+        <value>物理</value>
+    </data>
+    <data name="DensityText" xml:space="preserve">
+        <value>密度</value>
+    </data>
+    <data name="RestitutionText" xml:space="preserve">
+        <value>弹性</value>
+    </data>
+    <data name="GroupText" xml:space="preserve">
+        <value>分组</value>
+    </data>
+    <data name="LinearDampingText" xml:space="preserve">
+        <value>线性阻尼</value>
+    </data>
+    <data name="AngularDampingText" xml:space="preserve">
+        <value>角阻尼</value>
+    </data>
+    <data name="FrictionText" xml:space="preserve">
+        <value>摩擦</value>
+    </data>
+    <data name="IsAwakeText" xml:space="preserve">
+        <value>唤醒</value>
+    </data>
+    <data name="IsKinematicText" xml:space="preserve">
+        <value>运动学</value>
+    </data>
+    <data name="PhysicsShapeVerticesText" xml:space="preserve">
+        <value>物理形状顶点</value>
+    </data>
+    <data name="EventsText" xml:space="preserve">
+        <value>事件</value>
+    </data>
+    <data name="SubtypeIDText" xml:space="preserve">
+        <value>子类型 ID</value>
+    </data>
+    <data name="ActionsText" xml:space="preserve">
+        <value>动作</value>
+    </data>
+    <data name="DisplayNameText" xml:space="preserve">
+        <value>显示名称</value>
+    </data>
+    <data name="FontSizeEmText" xml:space="preserve">
+        <value>字体大小 (em)</value>
+    </data>
+    <data name="BoldText" xml:space="preserve">
+        <value>粗体</value>
+    </data>
+    <data name="ItalicText" xml:space="preserve">
+        <value>斜体</value>
+    </data>
+    <data name="RangeStartEndText" xml:space="preserve">
+        <value>范围  (起-止)</value>
+    </data>
+    <data name="CharsetText" xml:space="preserve">
+        <value>字符集</value>
+    </data>
+    <data name="AntiAliasingText" xml:space="preserve">
+        <value>抗锯齿</value>
+    </data>
+    <data name="AscenderText" xml:space="preserve">
+        <value>上升线</value>
+    </data>
+    <data name="AscenderOffsetText" xml:space="preserve">
+        <value>上升线偏移</value>
+    </data>
+    <data name="SDFSpreadValueText" xml:space="preserve">
+        <value>SDF 扩散值</value>
+    </data>
+    <data name="LineHeightText" xml:space="preserve">
+        <value>行高</value>
+    </data>
+    <data name="GlyphsText" xml:space="preserve">
+        <value>字形</value>
+    </data>
+    <data name="CharacterText" xml:space="preserve">
+        <value>字符</value>
+    </data>
+    <data name="SourceXText" xml:space="preserve">
+        <value>源 X</value>
+    </data>
+    <data name="SourceYText" xml:space="preserve">
+        <value>源 Y</value>
+    </data>
+    <data name="SourceWText" xml:space="preserve">
+        <value>源宽</value>
+    </data>
+    <data name="SourceHText" xml:space="preserve">
+        <value>源高</value>
+    </data>
+    <data name="ShiftText" xml:space="preserve">
+        <value>偏移量</value>
+    </data>
+    <data name="ShiftTipText" xml:space="preserve">
+        <value>推进到下一个字符时向右移动的像素数。</value>
+    </data>
+    <data name="OffsetText" xml:space="preserve">
+        <value>偏移</value>
+    </data>
+    <data name="OffsetTipText" xml:space="preserve">
+        <value>字形渲染时水平方向的偏移像素数。</value>
+    </data>
+    <data name="KerningOfSelectedGlyphText" xml:space="preserve">
+        <value>所选字形的字距调整</value>
+    </data>
+    <data name="PrecedingCharacterText" xml:space="preserve">
+        <value>前置字符</value>
+    </data>
+    <data name="ShiftModifiedText" xml:space="preserve">
+        <value>偏移修正</value>
+    </data>
+    <data name="SortGlyphsText" xml:space="preserve">
+        <value>排序字形</value>
+    </data>
+    <data name="UpdateRangeText" xml:space="preserve">
+        <value>更新范围</value>
+    </data>
+    <data name="ClassNameText" xml:space="preserve">
+        <value>类名</value>
+    </data>
+    <data name="FilesText" xml:space="preserve">
+        <value>文件</value>
+    </data>
+    <data name="FileNameText" xml:space="preserve">
+        <value>文件名称</value>
+    </data>
+    <data name="SelectedFilePropertiesText" xml:space="preserve">
+        <value>所选文件属性</value>
+    </data>
+    <data name="KindText" xml:space="preserve">
+        <value>类型</value>
+    </data>
+    <data name="InitFunctionNameText" xml:space="preserve">
+        <value>初始化函数名</value>
+    </data>
+    <data name="CleanupFunctionNameText" xml:space="preserve">
+        <value>清理函数名</value>
+    </data>
+    <data name="SelectedFunctionPropertiesText" xml:space="preserve">
+        <value>所选函数属性</value>
+    </data>
+    <data name="ExternalNameText" xml:space="preserve">
+        <value>外部名称</value>
+    </data>
+    <data name="IDText" xml:space="preserve">
+        <value>ID</value>
+    </data>
+    <data name="ReturnTypeText" xml:space="preserve">
+        <value>返回类型</value>
+    </data>
+    <data name="ArgumentTypesText" xml:space="preserve">
+        <value>参数类型</value>
+    </data>
+    <data name="OptionsText" xml:space="preserve">
+        <value>选项</value>
+    </data>
+    <data name="ValueText" xml:space="preserve">
+        <value>值</value>
+    </data>
+    <data name="ScaledText" xml:space="preserve">
+        <value>缩放</value>
+    </data>
+    <data name="GeneratedMipsText" xml:space="preserve">
+        <value>生成的 Mip 数</value>
+    </data>
+    <data name="SaveImageText" xml:space="preserve">
+        <value>保存图片</value>
+    </data>
+    <data name="WAVDataLengthText" xml:space="preserve">
+        <value>WAV 数据，长度：</value>
+    </data>
+    <data name="SaveAudioText" xml:space="preserve">
+        <value>保存音频</value>
+    </data>
+    <data name="CodeEntryReferenceText" xml:space="preserve">
+        <value>此代码项是匿名函数的引用，属于 </value>
+    </data>
+    <data name="CodeEntryReferenceSuffixText" xml:space="preserve">
+        <value>，请在该对象中查看。</value>
+    </data>
+    <data name="TransparentText" xml:space="preserve">
+        <value>透明</value>
+    </data>
+    <data name="UnknownAlways2Text" xml:space="preserve">
+        <value>未知常量2</value>
+    </data>
+    <data name="TileWidthText" xml:space="preserve">
+        <value>图块宽度</value>
+    </data>
+    <data name="TileHeightText" xml:space="preserve">
+        <value>图块高度</value>
+    </data>
+    <data name="OutputBorderXText" xml:space="preserve">
+        <value>输出边界 X</value>
+    </data>
+    <data name="OutputBorderYText" xml:space="preserve">
+        <value>输出边界 Y</value>
+    </data>
+    <data name="TileColumnsText" xml:space="preserve">
+        <value>图块列数</value>
+    </data>
+    <data name="ItemsPerTileText" xml:space="preserve">
+        <value>每图块帧数</value>
+    </data>
+    <data name="TileCountText" xml:space="preserve">
+        <value>图块数量</value>
+    </data>
+    <data name="UnknownAlwaysZeroText" xml:space="preserve">
+        <value>未知常为零</value>
+    </data>
+    <data name="FrameTimeMicrosecondsText" xml:space="preserve">
+        <value>帧时长 (微秒)</value>
+    </data>
+    <data name="TileIDsText" xml:space="preserve">
+        <value>图块 ID 列表</value>
+    </data>
+    <data name="TileIDText" xml:space="preserve">
+        <value>图块 ID</value>
+    </data>
+    <data name="ImageText" xml:space="preserve">
+        <value>图像</value>
+    </data>
+    <data name="SearchText" xml:space="preserve">
+        <value>搜索：</value>
+    </data>
+    <data name="SearchButtonText" xml:space="preserve">
+        <value>搜索</value>
+    </data>
+    <data name="MatchWholeWordText" xml:space="preserve">
+        <value>全词匹配</value>
+    </data>
+    <data name="ResultsText" xml:space="preserve">
+        <value>结果</value>
+    </data>
+    <data name="CaseSensitiveText" xml:space="preserve">
+        <value>区分大小写</value>
+    </data>
+    <data name="RegexSearchText" xml:space="preserve">
+        <value>正则匹配</value>
+    </data>
+    <data name="InAssemblyText" xml:space="preserve">
+        <value>查找汇编</value>
+    </data>
+    <data name="LocationText" xml:space="preserve">
+        <value>位置</value>
+    </data>
+    <data name="TextText" xml:space="preserve">
+        <value>文本</value>
+    </data>
+    <data name="DisableGMSDebuggerText" xml:space="preserve">
+        <value>禁用 GMS 调试器</value>
+    </data>
+    <data name="BytecodeVersionText" xml:space="preserve">
+        <value>字节码</value>
+    </data>
+    <data name="UnknownText" xml:space="preserve">
+        <value>未知</value>
+    </data>
+    <data name="ConfigText" xml:space="preserve">
+        <value>配置</value>
+    </data>
+    <data name="LastObjectIDText" xml:space="preserve">
+        <value>末尾对象 ID</value>
+    </data>
+    <data name="LastTileIDText" xml:space="preserve">
+        <value>末尾图块 ID</value>
+    </data>
+    <data name="GameIDText" xml:space="preserve">
+        <value>游戏 ID</value>
+    </data>
+    <data name="DirectPlayGUIDText" xml:space="preserve">
+        <value>DirectPlay GUID</value>
+    </data>
+    <data name="DefaultWindowSizeText" xml:space="preserve">
+        <value>默认窗口尺寸</value>
+    </data>
+    <data name="LicenseMD5Text" xml:space="preserve">
+        <value>许可证 MD5</value>
+    </data>
+    <data name="LicenseCRC32Text" xml:space="preserve">
+        <value>许可证 CRC32</value>
+    </data>
+    <data name="TimestampText" xml:space="preserve">
+        <value>时间戳</value>
+    </data>
+    <data name="ActiveTargetsText" xml:space="preserve">
+        <value>当前目标</value>
+    </data>
+    <data name="FunctionClassificationsText" xml:space="preserve">
+        <value>功能分类</value>
+    </data>
+    <data name="SteamAppIDText" xml:space="preserve">
+        <value>Steam 应用 ID</value>
+    </data>
+    <data name="DebuggerPortText" xml:space="preserve">
+        <value>调试器</value>
+    </data>
+    <data name="RoomOrderText" xml:space="preserve">
+        <value>房间顺序</value>
+    </data>
+    <data name="FPSText" xml:space="preserve">
+        <value>FPS</value>
+    </data>
+    <data name="AllowStatisticsText" xml:space="preserve">
+        <value>允许统计</value>
+    </data>
+    <data name="GameGUIDText" xml:space="preserve">
+        <value>游戏 GUID</value>
+    </data>
+    <data name="WindowColorText" xml:space="preserve">
+        <value>窗口颜色</value>
+    </data>
+    <data name="ColorDepthText" xml:space="preserve">
+        <value>颜色深度</value>
+    </data>
+    <data name="ResolutionText" xml:space="preserve">
+        <value>分辨率</value>
+    </data>
+    <data name="ScaleText" xml:space="preserve">
+        <value>大小</value>
+    </data>
+    <data name="FrequencyText" xml:space="preserve">
+        <value>频率</value>
+    </data>
+    <data name="VertexSyncText" xml:space="preserve">
+        <value>顶点同步</value>
+    </data>
+    <data name="PriorityText" xml:space="preserve">
+        <value>优先级</value>
+    </data>
+    <data name="BackImageText" xml:space="preserve">
+        <value>背景图</value>
+    </data>
+    <data name="FrontImageText" xml:space="preserve">
+        <value>前景图</value>
+    </data>
+    <data name="LoadImageText" xml:space="preserve">
+        <value>加载图</value>
+    </data>
+    <data name="LoadAlphaText" xml:space="preserve">
+        <value>加载透明度</value>
+    </data>
+    <data name="ConstantsText" xml:space="preserve">
+        <value>常量</value>
+    </data>
+    <data name="LanguageTitleText" xml:space="preserve">
+        <value>语言：</value>
+    </data>
+    <data name="EntryCountText" xml:space="preserve">
+        <value>入口数</value>
+    </data>
+    <data name="LanguageCountText" xml:space="preserve">
+        <value>语言数</value>
+    </data>
+    <data name="SettingsMenuText" xml:space="preserve">
+        <value>设置(_E)</value>
+    </data>
+    <data name="AboutMenuText" xml:space="preserve">
+        <value>关于(_A)</value>
+    </data>
+    <data name="HelpAboutMessageText" xml:space="preserve">
+        <value>UndertaleModTool 由 Underminers 团队开发。
+在 GNU 通用公共许可证 第3版 下许可。</value>
+    </data>
+    <data name="AudioGroupTitleText" xml:space="preserve">
+        <value>音频组 -</value>
+    </data>
+</root>

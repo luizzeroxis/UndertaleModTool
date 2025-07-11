@@ -6,6 +6,7 @@
              xmlns:h="clr-namespace:UndertaleModToolAvalonia.Helpers"
              xmlns:c="clr-namespace:UndertaleModToolAvalonia.Controls"
              xmlns:undertalem="clr-namespace:UndertaleModLib.Models;assembly=UndertaleModLib"
+             xmlns:assets="clr-namespace:UndertaleModToolAvalonia.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.Views.UndertaleBackgroundView"
              x:DataType="v:UndertaleBackgroundViewModel">
@@ -15,19 +16,19 @@
     </UserControl.Resources>
     <StackPanel>
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*" Classes="PaddedProperties">
-            <Label>Name</Label>
+            <Label Content="{x:Static assets:Resources.NameText}" />
             <c:UndertaleStringReferenceView Reference="{Binding Background.Name}" />
 
-            <Label>Transparent</Label>
+            <Label Content="{x:Static assets:Resources.TransparentText}" />
             <CheckBox IsChecked="{Binding Background.Transparent}" />
 
-            <Label>Smooth</Label>
+            <Label Content="{x:Static assets:Resources.SmoothText}" />
             <CheckBox IsChecked="{Binding Background.Smooth}" />
         
-            <Label>Preload</Label>
+            <Label Content="{x:Static assets:Resources.PreloadText}" />
             <CheckBox IsChecked="{Binding Background.Preload}" />
 
-            <Label>Texture</Label>
+            <Label Content="{x:Static assets:Resources.TextureText}" />
             <c:UndertaleResourceReferenceView Reference="{Binding Background.Texture}" ReferenceType="undertalem:UndertaleTexturePageItem" />
         </Grid>
         
@@ -36,41 +37,41 @@
               Converter={StaticResource VersionCompareConverter},
               ConverterParameter=GE2}">
             
-            <Label>Unknown Always 2</Label>
+            <Label Content="{x:Static assets:Resources.UnknownAlways2Text}" />
             <TextBox Text="{Binding Background.GMS2UnknownAlways2}" />
 
-            <Label>Tile Width</Label>
+            <Label Content="{x:Static assets:Resources.TileWidthText}" />
             <TextBox Text="{Binding Background.GMS2TileWidth}" />
 
-            <Label>Tile Height</Label>
+            <Label Content="{x:Static assets:Resources.TileHeightText}" />
             <TextBox Text="{Binding Background.GMS2TileHeight}" />
 
-            <Label>Output Border X</Label>
+            <Label Content="{x:Static assets:Resources.OutputBorderXText}" />
             <TextBox Text="{Binding Background.GMS2OutputBorderX}" />
 
-            <Label>Output Border Y</Label>
+            <Label Content="{x:Static assets:Resources.OutputBorderYText}" />
             <TextBox Text="{Binding Background.GMS2OutputBorderY}" />
 
-            <Label>Tile Columns</Label>
+            <Label Content="{x:Static assets:Resources.TileColumnsText}" />
             <TextBox Text="{Binding Background.GMS2TileColumns}" />
 
-            <Label>Items/frames per tile</Label>
+            <Label Content="{x:Static assets:Resources.ItemsPerTileText}" />
             <TextBox Text="{Binding Background.GMS2ItemsPerTileCount}" />
 
-            <Label>Tile Count</Label>
+            <Label Content="{x:Static assets:Resources.TileCountText}" />
             <TextBox Text="{Binding Background.GMS2TileCount}" />
 
-            <Label>Unknown Always Zero</Label>
+            <Label Content="{x:Static assets:Resources.UnknownAlwaysZeroText}" />
             <TextBox Text="{Binding Background.GMS2UnknownAlwaysZero}" />
 
-            <Label>Frame Time (microseconds)</Label>
+            <Label Content="{x:Static assets:Resources.FrameTimeMicrosecondsText}" />
             <TextBox Text="{Binding Background.GMS2FrameLength}" />
 
-            <Label>Tile IDs</Label>
-            <Expander Header="List">
+            <Label Content="{x:Static assets:Resources.TileIDsText}" />
+            <Expander Header="{x:Static assets:Resources.ListText}">
                 <c:EditableDataGrid ItemsSource="{Binding Background.GMS2TileIds}" ItemFactory="{Binding CreateTileID}">
                     <c:EditableDataGrid.Columns>
-                        <DataGridTemplateColumn Header="Tile ID" Width="1*">
+                        <DataGridTemplateColumn Header="{x:Static assets:Resources.TileIDText}" Width="1*">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate DataType="undertalem:UndertaleBackground+TileID">
                                     <TextBox Text="{Binding ID}" />
@@ -83,7 +84,7 @@
         </Grid>
         
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*" Classes="PaddedProperties">
-            <Label>Image</Label>
+            <Label Content="{x:Static assets:Resources.ImageText}" />
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
                           MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
                 <c:SKImageViewer>

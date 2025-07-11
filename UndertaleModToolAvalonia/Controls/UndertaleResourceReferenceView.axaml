@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:c="clr-namespace:UndertaleModToolAvalonia.Controls"
+             xmlns:assets="clr-namespace:UndertaleModToolAvalonia.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.Controls.UndertaleResourceReferenceView">
     <ContentControl DataContext="{Binding $parent[c:UndertaleResourceReferenceView]}">
@@ -18,8 +19,8 @@
                     <ContextDropBehavior Handler="{StaticResource UndertaleReferenceDropHandler}"/>
                 </Interaction.Behaviors>
             </TextBox>
-            <Button Grid.Column="1" Command="{Binding Open}" IsEnabled="{Binding Reference, Converter={x:Static ObjectConverters.IsNotNull}}">Open</Button>
-            <Button Grid.Column="2" Command="{Binding Remove}" IsEnabled="{Binding Reference, Converter={x:Static ObjectConverters.IsNotNull}}">Remove</Button>
+            <Button Grid.Column="1" Command="{Binding Open}" IsEnabled="{Binding Reference, Converter={x:Static ObjectConverters.IsNotNull}}" Content="{x:Static assets:Resources.OpenText}" />
+            <Button Grid.Column="2" Command="{Binding Remove}" IsEnabled="{Binding Reference, Converter={x:Static ObjectConverters.IsNotNull}}" Content="{x:Static assets:Resources.RemoveText}" />
         </Grid>
     </ContentControl>
 </UserControl>

@@ -38,7 +38,9 @@ public partial class UndertaleResourceReferenceView : UserControl
 
         if (change.Property == ReferenceTypeProperty)
         {
-            this.Find<TextBox>("TextBox")!.Watermark = "(" + ReferenceType.Name + " reference)";
+            var watermarkTemplate = Assets.Resources.TypeReferenceText;
+            var watermarkText = string.Format(watermarkTemplate, ReferenceType.Name);
+            this.Find<TextBox>("TextBox")!.Watermark = watermarkText;
         }
     }
 

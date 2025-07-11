@@ -4,20 +4,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:v="clr-namespace:UndertaleModToolAvalonia.Views"
         xmlns:h="clr-namespace:UndertaleModToolAvalonia.Helpers"
+        xmlns:lang="clr-namespace:UndertaleModToolAvalonia.Assets"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="UndertaleModToolAvalonia.Views.SettingsWindow"
         x:DataType="v:SettingsViewModel"
-        Title="Settings"
+        Title="{x:Static lang:Resources.SettingsText}"
         CanResize="False"
         Classes="SettingsWindow">
     <StackPanel>
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
-            <Label>Theme:</Label>
+            <Label Content="{x:Static lang:Resources.ThemeText}" />
             <ComboBox SelectedIndex="{Binding MainVM.Settings.Theme}">
-                <ComboBoxItem>System default</ComboBoxItem>
-                <ComboBoxItem>Light</ComboBoxItem>
-                <ComboBoxItem>Dark</ComboBoxItem>
+                <ComboBoxItem Content="{x:Static lang:Resources.SystemDefaultText}" />
+                <ComboBoxItem Content="{x:Static lang:Resources.LightText}" />
+                <ComboBoxItem Content="{x:Static lang:Resources.DarkText}" />
+            </ComboBox>
+        </Grid>
+
+        <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
+            <Label Content="{x:Static lang:Resources.LanguageTitleText}" />
+            <ComboBox SelectedIndex="{Binding MainVM.Settings.Language}">
+                <ComboBoxItem>English</ComboBoxItem>
+                <ComboBoxItem>简体中文</ComboBoxItem>
             </ComboBox>
         </Grid>
     </StackPanel>
+
 </Window>

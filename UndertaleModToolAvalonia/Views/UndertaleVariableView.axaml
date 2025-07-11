@@ -6,6 +6,7 @@
              xmlns:c="clr-namespace:UndertaleModToolAvalonia.Controls"
              xmlns:h="clr-namespace:UndertaleModToolAvalonia.Helpers"
              xmlns:undertalem="clr-namespace:UndertaleModLib.Models;assembly=UndertaleModLib"
+             xmlns:assets="clr-namespace:UndertaleModToolAvalonia.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.Views.UndertaleVariableView"
              x:DataType="v:UndertaleVariableViewModel">
@@ -13,17 +14,17 @@
         <h:EnumTypeToValuesConverter x:Key="EnumTypeToValuesConverter" />
     </UserControl.Resources>
     <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*" Classes="PaddedProperties">
-        <Label>Name</Label>
+        <Label Content="{x:Static assets:Resources.NameText}" />
         <c:UndertaleStringReferenceView Reference="{Binding Variable.Name}" />
 
-        <Label>Instance type</Label>
+        <Label Content="{x:Static assets:Resources.InstanceTypeText}" />
         <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleInstruction+InstanceType}, Converter={StaticResource EnumTypeToValuesConverter}}"
                   SelectedItem="{Binding Variable.InstanceType}" />
 
-        <Label>VarID</Label>
+        <Label Content="{x:Static assets:Resources.VarIDText}" />
         <TextBox Text="{Binding Variable.VarID}" />
 
-        <Label>Name string ID</Label>
+        <Label Content="{x:Static assets:Resources.NameStringIDText}" />
         <TextBox Text="{Binding Variable.NameStringID}" />
     </Grid>
 </UserControl>

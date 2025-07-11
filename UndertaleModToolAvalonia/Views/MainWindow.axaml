@@ -1,9 +1,9 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:vm="using:UndertaleModToolAvalonia.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:v="clr-namespace:UndertaleModToolAvalonia.Views"
+        xmlns:lang="clr-namespace:UndertaleModToolAvalonia.Assets"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="UndertaleModToolAvalonia.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
@@ -11,41 +11,41 @@
         Title="{Binding Title}">
     <NativeMenu.Menu>
         <NativeMenu>
-            <NativeMenuItem Header="_File">
+            <NativeMenuItem Header="{x:Static lang:Resources.FileMenuText}">
                 <NativeMenu>
-                    <NativeMenuItem Header="_New" Command="{Binding FileNew}" Gesture="Ctrl+N"/>
-                    <NativeMenuItem Header="_Open" Command="{Binding FileOpen}" Gesture="Ctrl+O"/>
-                    <NativeMenuItem Header="_Save" Command="{Binding FileSave}" Gesture="Ctrl+S"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.FileNewText}" Command="{Binding FileNew}" Gesture="Ctrl+N"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.FileOpenText}" Command="{Binding FileOpen}" Gesture="Ctrl+O"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.FileSaveText}" Command="{Binding FileSave}" Gesture="Ctrl+S"/>
                     <NativeMenuItemSeparator Header="-" />
-                    <NativeMenuItem Header="_Temp run game" IsEnabled="False"/>
-                    <NativeMenuItem Header="Run game under GMS _debugger" IsEnabled="False"/>
-                    <NativeMenuItem Header="Run game with other runner" IsEnabled="False"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.TempRunGameText}" IsEnabled="False"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.RunGameUnderDebuggerText}" IsEnabled="False"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.RunGameWithOtherRunnerText}" IsEnabled="False"/>
                     <NativeMenuItemSeparator Header="-" />
-                    <NativeMenuItem Header="Generate o_ffset map" IsEnabled="False"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.GenerateOffsetMapText}" IsEnabled="False"/>
                     <NativeMenuItemSeparator Header="-" />
-                    <NativeMenuItem Header="S_ettings" Command="{Binding FileSettings}"/>
-                    <NativeMenuItem Header="_Close" Command="{Binding FileClose}"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.SettingsMenuText}" Command="{Binding FileSettings}"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.FileCloseText}" Command="{Binding FileClose}"/>
                 </NativeMenu>
             </NativeMenuItem>
-            <NativeMenuItem Header="_Import" IsEnabled="False">
+            <NativeMenuItem Header="{x:Static lang:Resources.ImportMenuText}" IsEnabled="False">
             </NativeMenuItem>
-            <NativeMenuItem Header="_Export" IsEnabled="False">
+            <NativeMenuItem Header="{x:Static lang:Resources.ExportMenuText}" IsEnabled="False">
             </NativeMenuItem>
-            <NativeMenuItem Header="_Tools">
+            <NativeMenuItem Header="{x:Static lang:Resources.ToolsMenuText}">
                 <NativeMenu>
-                    <NativeMenuItem Header="_Search in code" Command="{Binding ToolsSearchInCode}" Gesture="Ctrl+Shift+F"/>
-                    <NativeMenuItem Header="Find unreferenced _assets" IsEnabled="False"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.SearchInCodeText}" Command="{Binding ToolsSearchInCode}" Gesture="Ctrl+Shift+F"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.FindUnreferencedAssetsText}" IsEnabled="False"/>
                 </NativeMenu>
             </NativeMenuItem>
-            <NativeMenuItem Header="_Scripts">
+            <NativeMenuItem Header="{x:Static lang:Resources.ScriptMenuText}">
                 <NativeMenu>
-                    <NativeMenuItem Header="Run _other script" Command="{Binding ScriptsRunOtherScript}" />
+                    <NativeMenuItem Header="{x:Static lang:Resources.RunGameWithOtherRunnerText}" IsEnabled="False" />
                 </NativeMenu>
             </NativeMenuItem>
-            <NativeMenuItem Header="_Help">
+            <NativeMenuItem Header="{x:Static lang:Resources.HelpMenuText}">
                 <NativeMenu>
-                    <NativeMenuItem Header="_GitHub" Command="{Binding HelpGitHub}"/>
-                    <NativeMenuItem Header="_About" Command="{Binding HelpAbout}" Gesture="F1"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.GitHubText}" Command="{Binding HelpGitHub}"/>
+                    <NativeMenuItem Header="{x:Static lang:Resources.AboutText}" Command="{Binding HelpAbout}" Gesture="F1"/>
                 </NativeMenu>
             </NativeMenuItem>
         </NativeMenu>

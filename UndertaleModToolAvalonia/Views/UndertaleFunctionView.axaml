@@ -5,14 +5,15 @@
              xmlns:v="clr-namespace:UndertaleModToolAvalonia.Views"
              xmlns:c="clr-namespace:UndertaleModToolAvalonia.Controls"
              xmlns:h="clr-namespace:UndertaleModToolAvalonia.Helpers"
+             xmlns:assets="clr-namespace:UndertaleModToolAvalonia.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.Views.UndertaleFunctionView"
              x:DataType="v:UndertaleFunctionViewModel">
     <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*" Classes="PaddedProperties">
-        <Label>Name</Label>
+        <Label Content="{x:Static assets:Resources.NameText}" />
         <c:UndertaleStringReferenceView Reference="{Binding Function.Name}" />
 
-        <Label>Name string ID</Label>
+        <Label Content="{x:Static assets:Resources.NameStringIDText}" />
         <TextBox Text="{Binding Function.NameStringID}" />
     </Grid>
 </UserControl>

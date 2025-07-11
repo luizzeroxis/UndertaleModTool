@@ -42,6 +42,14 @@ public partial class MessageWindow : Window
         Initialize();
     }
 
+    public MessageWindow(string titleText, string message, bool hasNoButton, bool hasYesButton) : this()
+    {
+        TitleText = titleText;
+        Message = message;
+        HasNoButton = hasNoButton;
+        HasYesButton = hasYesButton;
+    }
+
     public void Initialize()
     {
         InitializeComponent();

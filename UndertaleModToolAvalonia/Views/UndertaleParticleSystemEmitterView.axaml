@@ -7,6 +7,7 @@
              xmlns:h="clr-namespace:UndertaleModToolAvalonia.Helpers"
              xmlns:undertale="clr-namespace:UndertaleModLib;assembly=UndertaleModLib"
              xmlns:undertalem="clr-namespace:UndertaleModLib.Models;assembly=UndertaleModLib"
+             xmlns:assets="clr-namespace:UndertaleModToolAvalonia.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.Views.UndertaleParticleSystemEmitterView"
              x:DataType="v:UndertaleParticleSystemEmitterViewModel">
@@ -17,7 +18,7 @@
     </UserControl.Resources>
     <StackPanel Classes="PaddedProperties">
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
-            <Label>Name</Label>
+            <Label Content="{x:Static assets:Resources.NameText}" />
             <c:UndertaleStringReferenceView Reference="{Binding ParticleSystemEmitter.Name}" />
         </Grid>
         
@@ -25,16 +26,16 @@
               IsVisible="{Binding $parent[v:MainView].((v:MainViewModel)DataContext).DataVersion,
               Converter={StaticResource VersionCompareConverter},
               ConverterParameter=GE2023.6}">
-            <Label>Enabled</Label>
+            <Label Content="{x:Static assets:Resources.EnabledText}" />
             <CheckBox IsChecked="{Binding ParticleSystemEmitter.Enabled}" />
         </Grid>
         
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
-            <Label>Emit mode</Label>
+            <Label Content="{x:Static assets:Resources.TypeText}" />
             <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleParticleSystemEmitter+EmitMode}, Converter={StaticResource EnumTypeToValuesConverter}}"
                       SelectedItem="{Binding ParticleSystemEmitter.Mode}" />
 
-            <Label>Emit count</Label>
+            <Label Content="{x:Static assets:Resources.ListText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.EmitCount}" />
         </Grid>
 
@@ -42,40 +43,40 @@
               IsVisible="{Binding $parent[v:MainView].((v:MainViewModel)DataContext).DataVersion,
               Converter={StaticResource VersionCompareConverter},
               ConverterParameter=GE2023.8}">
-            <Label>Emit relative</Label>
+            <Label Content="{x:Static assets:Resources.EmitRelativeText}" />
             <CheckBox IsChecked="{Binding ParticleSystemEmitter.EmitRelative}" />
 
-            <Label>Delay (min/max)</Label>
+            <Label Content="{x:Static assets:Resources.DelayMinMaxText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.DelayMin}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.DelayMax}" />
             </Grid>
 
-            <Label>Delay time unit</Label>
+            <Label Content="{x:Static assets:Resources.DelayTimeUnitText}" />
             <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleParticleSystemEmitter+TimeUnitEnum}, Converter={StaticResource EnumTypeToValuesConverter}}"
                       SelectedItem="{Binding ParticleSystemEmitter.DelayUnit}" />
 
-            <Label>Interval (min/max)</Label>
+            <Label Content="{x:Static assets:Resources.IntervalMinMaxText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.IntervalMin}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.IntervalMax}" />
             </Grid>
             
-            <Label>Interval time unit</Label>
+            <Label Content="{x:Static assets:Resources.IntervalTimeUnitText}" />
             <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleParticleSystemEmitter+TimeUnitEnum}, Converter={StaticResource EnumTypeToValuesConverter}}"
                       SelectedItem="{Binding ParticleSystemEmitter.IntervalUnit}" />
         </Grid>
 
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
-            <Label>Distribution</Label>
+            <Label Content="{x:Static assets:Resources.DistributionText}" />
             <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleParticleSystemEmitter+DistributionEnum}, Converter={StaticResource EnumTypeToValuesConverter}}"
                       SelectedItem="{Binding ParticleSystemEmitter.Distribution}" />
 
-            <Label>Shape</Label>
+            <Label Content="{x:Static assets:Resources.ShapeText}" />
             <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleParticleSystemEmitter+EmitterShape}, Converter={StaticResource EnumTypeToValuesConverter}}"
                       SelectedItem="{Binding ParticleSystemEmitter.Shape}" />
 
-            <Label>Region (X/Y/Width/Height)</Label>
+            <Label Content="{x:Static assets:Resources.RegionXYWHText}" />
             <Grid ColumnDefinitions="1*,1*,1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.RegionX}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.RegionY}" />
@@ -83,15 +84,15 @@
                 <TextBox Grid.Column="3" Text="{Binding ParticleSystemEmitter.RegionHeight}" />
             </Grid>
 
-            <Label>Rotation</Label>
+            <Label Content="{x:Static assets:Resources.RotationText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.Rotation}" />
 
-            <Label>Sprite</Label>
+            <Label Content="{x:Static assets:Resources.SpriteText}" />
             <c:UndertaleResourceReferenceView Reference="{Binding ParticleSystemEmitter.Sprite}" ReferenceType="undertalem:UndertaleSprite" />
 
             <!-- TODO: View sprite -->
 
-            <Label>Sprite frame index</Label>
+            <Label Content="{x:Static assets:Resources.FrameIndexText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.FrameIndex}" />
         </Grid>
 
@@ -99,40 +100,40 @@
               IsVisible="{Binding $parent[v:MainView].((v:MainViewModel)DataContext).DataVersion,
               Converter={StaticResource VersionCompareConverter},
               ConverterParameter=GE2023.4}">
-            <Label>Animate sprite</Label>
+            <Label Content="{x:Static assets:Resources.AnimateSpriteText}" />
             <CheckBox IsChecked="{Binding ParticleSystemEmitter.Animate}" />
             
-            <Label>Stretch sprite</Label>
+            <Label Content="{x:Static assets:Resources.StretchText}" />
             <CheckBox IsChecked="{Binding ParticleSystemEmitter.Stretch}" />
             
-            <Label>Random</Label>
+            <Label Content="{x:Static assets:Resources.RandomText}" />
             <CheckBox IsChecked="{Binding ParticleSystemEmitter.IsRandom}" />
         </Grid>
 
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
-            <Label>Texture</Label>
+            <Label Content="{x:Static assets:Resources.TextureText}" />
             <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleParticleSystemEmitter+TextureEnum}, Converter={StaticResource EnumTypeToValuesConverter}}"
                       SelectedItem="{Binding ParticleSystemEmitter.Texture}" />
 
-            <Label>Start color</Label>
+            <Label Content="{x:Static assets:Resources.StartColorText}" />
             <ColorPicker Color="{Binding ParticleSystemEmitter.StartColor, Converter={StaticResource UndertaleColorToColorConverter}}" />
 
-            <Label>Middle color</Label>
+            <Label Content="{x:Static assets:Resources.MiddleColorText}" />
             <ColorPicker Color="{Binding ParticleSystemEmitter.MidColor, Converter={StaticResource UndertaleColorToColorConverter}}" />
             
-            <Label>End color</Label>
+            <Label Content="{x:Static assets:Resources.EndColorText}" />
             <ColorPicker Color="{Binding ParticleSystemEmitter.EndColor, Converter={StaticResource UndertaleColorToColorConverter}}" />
             
-            <Label>Additive color blend</Label>
+            <Label Content="{x:Static assets:Resources.AdditiveColorBlendText}" />
             <CheckBox IsChecked="{Binding ParticleSystemEmitter.AdditiveBlend}" />
 
-            <Label>Lifetime (min/max)</Label>
+            <Label Content="{x:Static assets:Resources.LifetimeMinMaxText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.LifetimeMin}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.LifetimeMax}" />
             </Grid>
 
-            <Label>Scale (X/Y)</Label>
+            <Label Content="{x:Static assets:Resources.ScaleXYText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.ScaleX}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.ScaleY}" />
@@ -140,85 +141,85 @@
 
             <!-- TODO: Version check for < 2023.8, show only 1 Scale (and other things). -->
 
-            <Label>Size min (X/Y)</Label>
+            <Label Content="{x:Static assets:Resources.SizeMinXYText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.SizeMinX}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.SizeMinY}" />
             </Grid>
 
-            <Label>Size max (X/Y)</Label>
+            <Label Content="{x:Static assets:Resources.SizeMaxXYText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.SizeMaxX}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.SizeMaxY}" />
             </Grid>
 
-            <Label>Size increase (X/Y)</Label>
+            <Label Content="{x:Static assets:Resources.SizeIncreaseXYText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.SizeIncreaseX}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.SizeIncreaseY}" />
             </Grid>
 
-            <Label>Size wiggle (X/Y)</Label>
+            <Label Content="{x:Static assets:Resources.SizeWiggleXYText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.SizeWiggleX}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.SizeWiggleY}" />
             </Grid>
 
-            <Label>Speed (min/max)</Label>
+            <Label Content="{x:Static assets:Resources.SpeedMinMaxText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.SpeedMin}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.SpeedMax}" />
             </Grid>
 
-            <Label>Speed increase</Label>
+            <Label Content="{x:Static assets:Resources.SpeedIncreaseText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.SpeedIncrease}" />
 
-            <Label>Speed wiggle</Label>
+            <Label Content="{x:Static assets:Resources.SpeedWiggleText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.SpeedWiggle}" />
             
-            <Label>Gravity force</Label>
+            <Label Content="{x:Static assets:Resources.GravityForceText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.GravityForce}" />
 
-            <Label>Gravity direction</Label>
+            <Label Content="{x:Static assets:Resources.GravityDirectionText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.GravityDirection}" />
 
-            <Label>Direction (min/max)</Label>
+            <Label Content="{x:Static assets:Resources.DirectionMinMaxText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.DirectionMin}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.DirectionMax}" />
             </Grid>
 
-            <Label>Direction increase</Label>
+            <Label Content="{x:Static assets:Resources.DirectionIncreaseText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.DirectionIncrease}" />
 
-            <Label>Direction wiggle</Label>
+            <Label Content="{x:Static assets:Resources.DirectionWiggleText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.DirectionWiggle}" />
 
-            <Label>Orientation (min/max)</Label>
+            <Label Content="{x:Static assets:Resources.OrientationMinMaxText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding ParticleSystemEmitter.OrientationMin}" />
                 <TextBox Grid.Column="1" Text="{Binding ParticleSystemEmitter.OrientationMax}" />
             </Grid>
 
-            <Label>Orientation increase</Label>
+            <Label Content="{x:Static assets:Resources.OrientationIncreaseText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.OrientationIncrease}" />
 
-            <Label>Orientation wiggle</Label>
+            <Label Content="{x:Static assets:Resources.OrientationWiggleText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.OrientationWiggle}" />
             
-            <Label>Is orientation relative</Label>
+            <Label Content="{x:Static assets:Resources.IsOrientationRelativeText}" />
             <CheckBox IsChecked="{Binding ParticleSystemEmitter.OrientationRelative}" />
 
-            <Label>Spawn on death</Label>
+            <Label Content="{x:Static assets:Resources.SpawnOnDeathText}" />
             <c:UndertaleResourceReferenceView Reference="{Binding ParticleSystemEmitter.SpawnOnDeath}" ReferenceType="undertalem:UndertaleParticleSystemEmitter" />
 
-            <Label>Spawn on death count</Label>
+            <Label Content="{x:Static assets:Resources.SpawnOnDeathCountText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.SpawnOnDeathCount}" />
 
-            <Label>Spawn on update</Label>
+            <Label Content="{x:Static assets:Resources.SpawnOnUpdateText}" />
             <c:UndertaleResourceReferenceView Reference="{Binding ParticleSystemEmitter.SpawnOnUpdate}" ReferenceType="undertalem:UndertaleParticleSystemEmitter" />
 
-            <Label>Spawn on update count</Label>
+            <Label Content="{x:Static assets:Resources.SpawnOnUpdateCountText}" />
             <TextBox Text="{Binding ParticleSystemEmitter.SpawnOnUpdateCount}" />
         </Grid>
     </StackPanel>

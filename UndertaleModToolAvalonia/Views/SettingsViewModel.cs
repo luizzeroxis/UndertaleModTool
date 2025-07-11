@@ -11,4 +11,5 @@ public class SettingsViewModel
     {
         MainVM = (serviceProvider ?? App.Services).GetRequiredService<MainViewModel>();
     }
+    
 }

@@ -14,6 +14,7 @@ using Avalonia.Platform.Storage;
 using PropertyChanged.SourceGenerator;
 using UndertaleModLib;
 using UndertaleModLib.Models;
+using UndertaleModToolAvalonia.Assets;
 using UndertaleModToolAvalonia.Controls;
 using UndertaleModToolAvalonia.Core;
 
@@ -91,8 +92,8 @@ public partial class MainViewModel
 
         Tabs = [
             new TabItemViewModel(new DescriptionViewModel(
-                "Welcome to UndertaleModTool!",
-                "Open a data.win file to get started, then double click on the items on the left to view them."),
+                    Resources.WelcomeText,
+                    Resources.WelcomeDescription),
                 isSelected: true),
         ];
     }
@@ -317,10 +318,10 @@ public partial class MainViewModel
 
     public async void HelpAbout()
     {
-        await ShowMessageDialog($"UndertaleModTool v{Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?.?.?.?"}" +
-            $"by the Underminers team\nLicensed under the GNU General Public License Version 3.", title: "About");
+        await ShowMessageDialog(Resources.HelpAboutMessageText,
+            title: Resources.AboutText, ok: true);
     }
-
+    
     public void DataItemAdd(IList list)
     {
         // TODO: Ask user for name etc.

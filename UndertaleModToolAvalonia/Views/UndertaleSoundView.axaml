@@ -6,39 +6,40 @@
              xmlns:h="clr-namespace:UndertaleModToolAvalonia.Helpers"
              xmlns:c="clr-namespace:UndertaleModToolAvalonia.Controls"
              xmlns:undertalem="clr-namespace:UndertaleModLib.Models;assembly=UndertaleModLib"
+             xmlns:assets="clr-namespace:UndertaleModToolAvalonia.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.Views.UndertaleSoundView"
              x:DataType="v:UndertaleSoundViewModel">
     <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*" Classes="PaddedProperties">
-        <Label>Name</Label>
+        <Label  Content="{x:Static assets:Resources.NameText}" />
         <c:UndertaleStringReferenceView Reference="{Binding Sound.Name}" />
 
-        <Label>Flags</Label>
+        <Label Content="{x:Static assets:Resources.FlagsText}" />
         <c:FlagsBoxView Value="{Binding Sound.Flags}" />
 
-        <Label>Type</Label>
+        <Label Content="{x:Static assets:Resources.TypeText}" />
         <c:UndertaleStringReferenceView Reference="{Binding Sound.Type}" />
 
-        <Label>File</Label>
+        <Label Content="{x:Static assets:Resources.FileText}" />
         <c:UndertaleStringReferenceView Reference="{Binding Sound.File}" />
 
-        <Label>Effects</Label>
+        <Label Content="{x:Static assets:Resources.EffectsText}" />
         <TextBox Text="{Binding Sound.Effects}" />
 
-        <Label>Volume</Label>
+        <Label  Content="{x:Static assets:Resources.VolumeText}" />
         <TextBox Text="{Binding Sound.Volume}" />
 
-        <Label>Pitch</Label>
+        <Label  Content="{x:Static assets:Resources.PitchText}" />
         <TextBox Text="{Binding Sound.Pitch}" />
 
-        <Label>Audio group</Label>
+        <Label  Content="{x:Static assets:Resources.AudioGroupText}" />
         <c:UndertaleResourceReferenceView Reference="{Binding Sound.AudioGroup}" ReferenceType="undertalem:UndertaleAudioGroup" />
 
         <!-- TODO: Deal with audio groups. -->
-        <Label>Audio file</Label>
+        <Label Content="{x:Static assets:Resources.AudioFileText}" />
         <TextBox Text="{Binding Sound.AudioID}" />
 
-        <Label>Preload (old audio system)</Label>
+        <Label Content="{x:Static assets:Resources.PreloadText}" />
         <CheckBox IsChecked="{Binding Sound.Preload}" />
 
         <!-- TODO: Audio player -->

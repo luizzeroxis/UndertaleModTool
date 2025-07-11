@@ -6,6 +6,7 @@
              xmlns:c="clr-namespace:UndertaleModToolAvalonia.Controls"
              xmlns:h="clr-namespace:UndertaleModToolAvalonia.Helpers"
              xmlns:undertalem="clr-namespace:UndertaleModLib.Models;assembly=UndertaleModLib"
+             xmlns:assets="clr-namespace:UndertaleModToolAvalonia.Assets"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.Views.UndertaleFontView"
              x:DataType="v:UndertaleFontViewModel">
@@ -14,38 +15,38 @@
     </UserControl.Resources>
     <StackPanel Classes="PaddedProperties">
         <Grid h:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
-            <Label>Name</Label>
+            <Label Content="{x:Static assets:Resources.NameText}" />
             <c:UndertaleStringReferenceView Reference="{Binding Font.Name}" />
 
-            <Label>Display name</Label>
+            <Label Content="{x:Static assets:Resources.DisplayNameText}" />
             <c:UndertaleStringReferenceView Reference="{Binding Font.DisplayName}" />
         
-            <Label>Font size (em)</Label>
+            <Label Content="{x:Static assets:Resources.FontSizeEmText}" />
             <TextBox Text="{Binding Font.EmSize}" />
         
-            <Label>Bold</Label>
+            <Label Content="{x:Static assets:Resources.BoldText}" />
             <CheckBox IsChecked="{Binding Font.Bold}" />
 
-            <Label>Italic</Label>
+            <Label Content="{x:Static assets:Resources.ItalicText}" />
             <CheckBox IsChecked="{Binding Font.Italic}" />
 
-            <Label>Range (start-end)</Label>
+            <Label Content="{x:Static assets:Resources.RangeStartEndText}" />
             <Grid ColumnDefinitions="1*,Auto,1*">
                 <TextBox Grid.Column="0" Text="{Binding Font.RangeStart}" />
                 <TextBlock Grid.Column="1" Text=" - " />
                 <TextBox Grid.Column="2" Text="{Binding Font.RangeEnd}" />
             </Grid>
         
-            <Label>Charset</Label>
+            <Label Content="{x:Static assets:Resources.CharsetText}" />
             <TextBox Text="{Binding Font.Charset}" />
 
-            <Label>Anti Aliasing</Label>
+            <Label Content="{x:Static assets:Resources.AntiAliasingText}" />
             <TextBox Text="{Binding Font.AntiAliasing}" />
 
-            <Label>Texture</Label>
+            <Label Content="{x:Static assets:Resources.TextureText}" />
             <c:UndertaleResourceReferenceView Reference="{Binding Font.Texture}" ReferenceType="undertalem:UndertaleTexturePageItem" />
 
-            <Label>Scale (X/Y)</Label>
+            <Label Content="{x:Static assets:Resources.ScaleXYText}" />
             <Grid ColumnDefinitions="1*,1*">
                 <TextBox Grid.Column="0" Text="{Binding Font.ScaleX}" />
                 <TextBox Grid.Column="1" Text="{Binding Font.ScaleY}" />
@@ -56,10 +57,10 @@
               IsVisible="{Binding $parent[v:MainView].((v:MainViewModel)DataContext).DataVersion,
               Converter={StaticResource VersionCompareConverter},
               ConverterParameter=GE2022.2}">
-            <Label>Ascender</Label>
+            <Label Content="{x:Static assets:Resources.AscenderText}" />
             <TextBox Text="{Binding Font.Ascender}" />
 
-            <Label>Ascender offset</Label>
+            <Label Content="{x:Static assets:Resources.AscenderOffsetText}" />
             <TextBox Text="{Binding Font.AscenderOffset}" />
         </Grid>
 
@@ -67,7 +68,7 @@
              IsVisible="{Binding $parent[v:MainView].((v:MainViewModel)DataContext).DataVersion,
               Converter={StaticResource VersionCompareConverter},
               ConverterParameter=GE2023.2}">
-            <Label>SDF spread value</Label>
+            <Label Content="{x:Static assets:Resources.SDFSpreadValueText}" />
             <TextBox Text="{Binding Font.SDFSpread}" />
         </Grid>
 
@@ -75,16 +76,16 @@
              IsVisible="{Binding $parent[v:MainView].((v:MainViewModel)DataContext).DataVersion,
               Converter={StaticResource VersionCompareConverter},
               ConverterParameter=GE2023.6}">
-            <Label>Line height</Label>
+            <Label Content="{x:Static assets:Resources.LineHeightText}" />
             <TextBox Text="{Binding Font.LineHeight}" />
         </Grid>
 
         <!-- TODO: Show texture, click and edit glyphs -->
 
-        <Label>Glyphs</Label>
+        <Label Content="{x:Static assets:Resources.GlyphsText}" />
         <c:EditableDataGrid ItemsSource="{Binding Font.Glyphs}" ItemFactory="{Binding CreateGlyph}" SelectionChanged="{Binding GlyphsSelectedChanged}">
             <c:EditableDataGrid.Columns>
-                <DataGridTemplateColumn Header="Character" Width="4*">
+                <DataGridTemplateColumn Header="{x:Static assets:Resources.CharacterText}" Width="4*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
                             <TextBox Text="{Binding Character}" />
@@ -92,28 +93,28 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Source X" Width="1*">
+                <DataGridTemplateColumn Header="{x:Static assets:Resources.SourceXText}" Width="1*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
                             <TextBox Text="{Binding SourceX}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Source Y" Width="1*">
+                <DataGridTemplateColumn Header="{x:Static assets:Resources.SourceYText}" Width="1*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
                             <TextBox Text="{Binding SourceY}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Source W" Width="1*">
+                <DataGridTemplateColumn Header="{x:Static assets:Resources.SourceWText}" Width="1*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
                             <TextBox Text="{Binding SourceWidth}" />
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Source H" Width="1*">
+                <DataGridTemplateColumn Header="{x:Static assets:Resources.SourceHText}" Width="1*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
                             <TextBox Text="{Binding SourceHeight}" />
@@ -122,7 +123,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Width="4*">
                     <DataGridTemplateColumn.Header>
-                        <TextBlock Text="Shift" ToolTip.Tip="The number of pixels to shift right when advancing to the next character." />
+                        <TextBlock Text="{x:Static assets:Resources.ShiftText}" ToolTip.Tip="{x:Static assets:Resources.ShiftTipText}" />
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
@@ -132,7 +133,7 @@
                 </DataGridTemplateColumn>
                 <DataGridTemplateColumn Width="4*">
                     <DataGridTemplateColumn.Header>
-                        <TextBlock Text="Offset" ToolTip.Tip="The number of pixels to horizontally offset the rendering of the glyph." />
+                        <TextBlock Text="{x:Static assets:Resources.OffsetText}" ToolTip.Tip="{x:Static assets:Resources.OffsetTipText}" />
                     </DataGridTemplateColumn.Header>
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
@@ -143,10 +144,10 @@
             </c:EditableDataGrid.Columns>
         </c:EditableDataGrid>
 
-        <Label>Kerning of selected glyph</Label>
+        <Label Content="{x:Static assets:Resources.KerningOfSelectedGlyphText}" />
         <c:EditableDataGrid ItemsSource="{Binding GlyphsSelected.Kerning}" ItemFactory="{Binding CreateGlyphKerning}">
             <c:EditableDataGrid.Columns>
-                <DataGridTemplateColumn Header="Preceding character" Width="1*">
+                <DataGridTemplateColumn Header="{x:Static assets:Resources.PrecedingCharacterText}" Width="1*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph+GlyphKerning">
                             <TextBox Text="{Binding Character}" />
@@ -154,7 +155,7 @@
                         </DataTemplate>
                     </DataGridTemplateColumn.CellTemplate>
                 </DataGridTemplateColumn>
-                <DataGridTemplateColumn Header="Shift modified" Width="1*">
+                <DataGridTemplateColumn Header="{x:Static assets:Resources.ShiftModifiedText}" Width="1*">
                     <DataGridTemplateColumn.CellTemplate>
                         <DataTemplate DataType="undertalem:UndertaleFont+Glyph+GlyphKerning">
                             <TextBox Text="{Binding ShiftModifier}" />
@@ -165,8 +166,8 @@
         </c:EditableDataGrid>
 
         <StackPanel Orientation="Horizontal">
-            <Button Command="{Binding SortGlyphs}">Sort glyphs</Button>
-            <Button Command="{Binding UpdateRange}">Update range</Button>
+            <Button Command="{Binding SortGlyphs}" Content="{x:Static assets:Resources.SortGlyphsText}" />
+            <Button Command="{Binding UpdateRange}" Content="{x:Static assets:Resources.UpdateRangeText}" />
         </StackPanel>
     </StackPanel>
 </UserControl>

@@ -7,6 +7,10 @@ using Avalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
 using PropertyChanged.SourceGenerator;
 using UndertaleModToolAvalonia.Views;
+using System.ComponentModel;
+using System.Globalization;
+using UndertaleModToolAvalonia.Assets;
+using UndertaleModToolAvalonia.Controls;
 
 namespace UndertaleModToolAvalonia.Core;
 
@@ -83,7 +87,48 @@ public partial class SettingsFile
         Light = 1,
         Dark = 2,
     }
+    
+    public enum LanguageValue
+    {
+        English = 0,
+        ChineseSimplified = 1
+    }
+    
+    private LanguageValue _Language = GetDefaultLanguage();
+    public LanguageValue Language
+    {
+        get => _Language;
+        set
+        {
+            if (_Language != value)
+            {
+                _Language = value;
+                OnLanguageChanged();
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(Language)));
+            }
+        }
+    }
 
+
+    public LanguageValue CurrentLanguage
+    {
+        get
+        {
+            var name = CultureInfo.CurrentUICulture.Name;
+            if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+                return LanguageValue.ChineseSimplified;
+            return LanguageValue.English;
+        }
+    }
+
+    private static LanguageValue GetDefaultLanguage()
+    {
+        var name = CultureInfo.CurrentUICulture.Name;
+        if (name.StartsWith("zh", StringComparison.OrdinalIgnoreCase))
+            return LanguageValue.ChineseSimplified;
+        return LanguageValue.English;
+    }
+    
     [Notify]
     private ThemeValue _Theme;
 
@@ -101,4 +146,26 @@ public partial class SettingsFile
         }
         Save();
     }
+    
+        
+    void OnLanguageChanged()
+    {
+        MessageWindow window = new MessageWindow(titleText: Resources.LanguageChangedTitle,
+            message: Resources.RestartToApplyNewLanguageText, hasNoButton: true, hasYesButton: true);
+        window.Initialize();
+        window.Show();
+        switch (_Language)
+        {
+            case LanguageValue.English:
+                CultureInfo.CurrentUICulture = new CultureInfo("en");
+                break;
+            case LanguageValue.ChineseSimplified:
+                CultureInfo.CurrentUICulture = new CultureInfo("zh-Hans");
+                break;
+        }
+
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged;
 }
+
