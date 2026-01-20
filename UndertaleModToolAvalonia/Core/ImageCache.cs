@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using SkiaSharp;
@@ -64,7 +64,7 @@ public class ImageCache
         return image;
     }
 
-    public SKImage GetCachedImageFromTexturePageItem(UndertaleTexturePageItem texturePageItem)
+    public SKImage? GetCachedImageFromTexturePageItem(UndertaleTexturePageItem texturePageItem)
     {
         TexturePageItemImageKey key = new(
             texturePageItem.TexturePage.TextureData.Image,
@@ -79,12 +79,22 @@ public class ImageCache
 
         if (image is null)
         {
-            image = GetCachedImageFromGMImage(texturePageItem.TexturePage.TextureData.Image)
-                .Subset(SKRectI.Create(
-                    texturePageItem.SourceX,
-                    texturePageItem.SourceY,
-                    texturePageItem.SourceWidth,
-                    texturePageItem.SourceHeight));
+            GMImage gmImage = texturePageItem.TexturePage.TextureData.Image;
+
+            var rect = SKRectI.Create(
+                texturePageItem.SourceX,
+                texturePageItem.SourceY,
+                texturePageItem.SourceWidth,
+                texturePageItem.SourceHeight);
+
+            if (!SKRectI.Create(gmImage.Width, gmImage.Height).Contains(rect))
+                return null;
+
+            image = GetCachedImageFromGMImage(gmImage)
+                .Subset(rect);
+
+            if (image is null)
+                return null;
 
             imageCache[key] = new WeakReference<SKImage>(image);
         }

@@ -2,13 +2,12 @@
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
-using System.Threading.Tasks;
+using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
 using PropertyChanged.SourceGenerator;
-using UndertaleModToolAvalonia.Views;
 
-namespace UndertaleModToolAvalonia.Core;
+namespace UndertaleModToolAvalonia;
 
 public partial class SettingsFile
 {
@@ -20,22 +19,24 @@ public partial class SettingsFile
         MainVM = serviceProvider.GetRequiredService<MainViewModel>();
     }
 
-    public static async Task<SettingsFile> Load(IServiceProvider serviceProvider)
+    public static SettingsFile Load(IServiceProvider serviceProvider)
     {
         MainViewModel mainVM = serviceProvider.GetRequiredService<MainViewModel>();
 
+        SettingsFile? settings = null;
+
         string roamingAppData = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "UndertaleModToolAvalonia");
 
-        try
-        {
-            string path = Path.Join(roamingAppData, "Settings.json");
+        // Load Settings.json
+        string settingsPath = Path.Join(roamingAppData, "Settings.json");
 
-            if (File.Exists(path))
+        if (File.Exists(settingsPath))
+        {
+            try
             {
-                string json = File.ReadAllText(path);
-                SettingsFile? settings = JsonSerializer.Deserialize<SettingsFile>(json, new JsonSerializerOptions()
+                string json = File.ReadAllText(settingsPath);
+                settings = JsonSerializer.Deserialize<SettingsFile>(json, new JsonSerializerOptions()
                 {
-                    ReadCommentHandling = JsonCommentHandling.Skip,
                     AllowTrailingCommas = true,
                 });
 
@@ -44,18 +45,39 @@ public partial class SettingsFile
                     // Check for upgrades here.
                     settings.MainVM = mainVM;
                     settings.Version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?.?.?.?";
-
-                    return settings;
                 }
             }
-        }
-        catch (Exception e)
-        {
-            await mainVM.ShowMessageDialog($"Error when loading settings file: {e.Message}");
-            throw;
+            catch (Exception e)
+            {
+                mainVM.LazyErrorMessages.Add($"Error when loading settings file:\n{e.Message}\nDefault settings loaded.");
+            }
         }
 
-        return new SettingsFile(serviceProvider);
+        settings ??= new SettingsFile(serviceProvider);
+
+        // Load Styles.xaml
+        string stylesPath = Path.Join(roamingAppData, "Styles.xaml");
+
+        if (File.Exists(stylesPath))
+        {
+            try
+            {
+                string xaml = File.ReadAllText(stylesPath);
+                Styles styles = AvaloniaRuntimeXamlLoader.Parse<Styles>(xaml);
+
+                if (App.CurrentCustomStyles is not null)
+                    App.Current!.Styles.Remove(App.CurrentCustomStyles);
+
+                App.CurrentCustomStyles = styles;
+                App.Current!.Styles.Add(styles);
+            }
+            catch (Exception e)
+            {
+                mainVM.LazyErrorMessages.Add($"Error when loading styles file:\n{e.Message}");
+            }
+        }
+
+        return settings;
     }
 
     public async void Save()
@@ -74,7 +96,7 @@ public partial class SettingsFile
         }
         catch (Exception e)
         {
-            await MainVM.ShowMessageDialog($"Error when saving settings file: {e.Message}");
+            await MainVM.View!.MessageDialog($"Error when saving settings file: {e.Message}");
         }
     }
 
@@ -103,6 +125,16 @@ public partial class SettingsFile
             };
         }
     }
+
+    public bool OpenNewResourceAfterCreatingIt { get; set; } = false;
+    public bool EnableSyntaxHighlighting { get; set; } = true;
+    public bool AutomaticallyCompileAndDecompileCodeOnLostFocus { get; set; } = true;
+
+    public bool EnableRoomGridByDefault { get; set; } = false;
+    public uint DefaultRoomGridWidth { get; set; } = 20;
+    public uint DefaultRoomGridHeight { get; set; } = 20;
+
+    public bool EnableSelectAnyLayerByDefault { get; set; } = true;
 
     public string InstanceIdPrefix { get; set; } = "inst_";
 

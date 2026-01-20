@@ -17,10 +17,8 @@ using UndertaleModLib;
 using UndertaleModLib.Decompiler;
 using UndertaleModLib.Models;
 using UndertaleModLib.Scripting;
-using UndertaleModToolAvalonia.Controls;
-using UndertaleModToolAvalonia.Views;
 
-namespace UndertaleModToolAvalonia.Core;
+namespace UndertaleModToolAvalonia;
 
 public class Scripting
 {
@@ -65,7 +63,7 @@ public class Scripting
             if (errors.Any())
             {
                 string message = String.Join("\n", errors);
-                await MainVM.ShowMessageDialog(message, title: "Script compilation error");
+                await MainVM.View!.MessageDialog(message, title: "Script compilation error");
 
                 return null;
             }
@@ -79,11 +77,11 @@ public class Scripting
             }
             catch (ScriptException e)
             {
-                await MainVM.ShowMessageDialog(e.Message, title: "Error from script");
+                await MainVM.View!.MessageDialog(e.Message, title: "Error from script");
             }
             catch (Exception e)
             {
-                await MainVM.ShowMessageDialog(e.ToString(), title: "Script execution error");
+                await MainVM.View!.MessageDialog(e.ToString(), title: "Script execution error");
             }
         }
         finally
@@ -100,7 +98,8 @@ public class ScriptGlobals : IScriptInterface
     private readonly MainViewModel mainVM;
     private readonly string? scriptPath;
 
-    private LoaderWindow? loaderWindow;
+    private ILoaderWindow? loaderWindow;
+    private int loaderValue;
 
     public ScriptGlobals(Scripting scripting, string? scriptPath)
     {
@@ -132,16 +131,17 @@ public class ScriptGlobals : IScriptInterface
 
     public void AddProgress(int amount)
     {
-        loaderWindow!.SetValue(loaderWindow!.Value + amount);
+        loaderValue += amount;
+        loaderWindow!.SetValue(loaderValue);
     }
 
     public void AddProgressParallel(int amount)
     {
-        Interlocked.Add(ref loaderWindow!.Value, amount);
+        Interlocked.Add(ref loaderValue, amount);
 
         Dispatcher.UIThread.Post(() =>
         {
-            loaderWindow!.SetValue(loaderWindow!.Value);
+            loaderWindow!.SetValue(loaderValue);
         }, DispatcherPriority.Background);
     }
 
@@ -178,7 +178,7 @@ public class ScriptGlobals : IScriptInterface
     public string GetDecompiledText(UndertaleCode code, GlobalDecompileContext? context = null, IDecompileSettings? settings = null)
     {
         context ??= new(mainVM.Data);
-        // TODO: Decompiler settings
+        settings ??= mainVM.Data!.ToolInfo.DecompilerSettings;
 
         return new Underanalyzer.Decompiler.DecompileContext(context, code, settings).DecompileToString();
     }
@@ -195,7 +195,7 @@ public class ScriptGlobals : IScriptInterface
 
     public int GetProgress()
     {
-        return loaderWindow!.Value;
+        return loaderValue;
     }
 
     public void HideProgressBar()
@@ -206,16 +206,17 @@ public class ScriptGlobals : IScriptInterface
 
     public void IncrementProgress()
     {
-        loaderWindow!.SetValue(loaderWindow!.Value + 1);
+        loaderValue++;
+        loaderWindow!.SetValue(loaderValue);
     }
 
     public void IncrementProgressParallel()
     {
-        Interlocked.Increment(ref loaderWindow!.Value);
+        Interlocked.Increment(ref loaderValue);
 
         Dispatcher.UIThread.Post(() =>
         {
-            loaderWindow!.SetValue(loaderWindow!.Value);
+            loaderWindow!.SetValue(loaderValue);
         }, DispatcherPriority.Background);
     }
 
@@ -236,7 +237,7 @@ public class ScriptGlobals : IScriptInterface
 
     public string? PromptChooseDirectory()
     {
-        IReadOnlyList<IStorageFolder> folders = Task.Run(() => mainVM.OpenFolderDialog!(new()
+        IReadOnlyList<IStorageFolder> folders = Task.Run(() => mainVM.View!.OpenFolderDialog(new()
         {
             Title = "Select directory",
         })).Result;
@@ -250,7 +251,7 @@ public class ScriptGlobals : IScriptInterface
     public string? PromptLoadFile(string? defaultExt, string? filter)
     {
         // TODO: filter
-        var files = Task.Run(() => mainVM.OpenFileDialog!(new FilePickerOpenOptions()
+        var files = Task.Run(() => mainVM.View!.OpenFileDialog(new FilePickerOpenOptions()
         {
             Title = "Load file",
             FileTypeFilter = [
@@ -270,7 +271,7 @@ public class ScriptGlobals : IScriptInterface
     public string? PromptSaveFile(string defaultExt, string filter)
     {
         // TODO: filter
-        var file = Task.Run(() => mainVM.SaveFileDialog!(new FilePickerSaveOptions()
+        var file = Task.Run(() => mainVM.View!.SaveFileDialog(new FilePickerSaveOptions()
         {
             Title = "Save file",
             FileTypeChoices = [
@@ -284,7 +285,7 @@ public class ScriptGlobals : IScriptInterface
 
         if (file is null)
             return null;
-        
+
         return file.TryGetLocalPath();
     }
 
@@ -295,7 +296,7 @@ public class ScriptGlobals : IScriptInterface
 
     public void ScriptError(string error, string title = "Error", bool SetConsoleText = true)
     {
-        mainVM.ShowMessageDialog(error, title).WaitOnDispatcherFrame();
+        mainVM.View!.MessageDialog(error, title).WaitOnDispatcherFrame();
 
         if (SetConsoleText)
         {
@@ -303,29 +304,30 @@ public class ScriptGlobals : IScriptInterface
         }
     }
 
-    public string ScriptInputDialog(string title, string label, string defaultInput, string cancelText, string submitText, bool isMultiline, bool preventClose)
+    public string? ScriptInputDialog(string title, string label, string defaultInput, string cancelText, string submitText, bool isMultiline, bool preventClose)
     {
-        throw new NotImplementedException();
+        // TODO: cancelText, submitText, preventClose
+        return mainVM.View!.TextBoxDialog(label, defaultInput, title: title, isMultiline: isMultiline).WaitOnDispatcherFrame();
     }
 
     public void ScriptMessage(string message)
     {
-        mainVM.ShowMessageDialog(message, title: "Script message").WaitOnDispatcherFrame();
+        mainVM.View!.MessageDialog(message, title: "Script message").WaitOnDispatcherFrame();
     }
 
     public void ScriptOpenURL(string url)
     {
-        mainVM.LaunchUriAsync!(new(url)).Wait();
+        mainVM.View!.LaunchUriAsync(new(url)).Wait();
     }
 
     public bool ScriptQuestion(string message)
     {
-        return mainVM.ShowMessageDialog(message, "Script question", ok: false, yes: true, no: true).WaitOnDispatcherFrame() == MessageWindow.Result.Yes;
+        return mainVM.View!.MessageDialog(message, "Script question", ok: false, yes: true, no: true).WaitOnDispatcherFrame() == MessageWindow.Result.Yes;
     }
 
     public void ScriptWarning(string message)
     {
-        mainVM.ShowMessageDialog(message, title: "Script warning").WaitOnDispatcherFrame();
+        mainVM.View!.MessageDialog(message, title: "Script warning").WaitOnDispatcherFrame();
     }
 
     public void SetFinishedMessage(bool isFinishedMessageEnabled)
@@ -335,21 +337,32 @@ public class ScriptGlobals : IScriptInterface
 
     public void SetProgress(int value)
     {
-        loaderWindow!.SetValue(value);
+        loaderValue = value;
+        loaderWindow!.SetValue(loaderValue);
     }
 
     public void SetProgressBar(string message, string status, double progressValue, double maxValue)
     {
-        loaderWindow ??= mainVM.LoaderOpen!();
-        loaderWindow.SetMessage(message);
-        loaderWindow.SetStatus(status);
-        loaderWindow.SetValue((int)progressValue);
-        loaderWindow.SetMaximum((int)maxValue);
+        loaderValue = (int)progressValue;
+
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            loaderWindow ??= mainVM.View!.LoaderOpen();
+            loaderWindow.EnsureShown();
+            loaderWindow.SetMessage(message);
+            loaderWindow.SetStatus(status);
+            loaderWindow.SetValue(loaderValue);
+            loaderWindow.SetMaximum((int)maxValue);
+        });
     }
 
     public void SetProgressBar()
     {
-        loaderWindow ??= mainVM.LoaderOpen!();
+        Dispatcher.UIThread.Invoke(() =>
+        {
+            loaderWindow ??= mainVM.View!.LoaderOpen();
+            loaderWindow.EnsureShown();
+        });
     }
 
     public void SetUMTConsoleText(string message)
@@ -357,14 +370,15 @@ public class ScriptGlobals : IScriptInterface
         mainVM.CommandTextBoxText = message;
     }
 
-    public string SimpleTextInput(string title, string label, string defaultValue, bool allowMultiline, bool showDialog = true)
+    public string? SimpleTextInput(string title, string label, string defaultValue, bool allowMultiline, bool showDialog = true)
     {
-        throw new NotImplementedException();
+        // TODO: showDialog
+        return mainVM.View!.TextBoxDialog(label, defaultValue, title: title, isMultiline: allowMultiline).WaitOnDispatcherFrame();
     }
 
     public void SimpleTextOutput(string title, string label, string message, bool allowMultiline)
     {
-        throw new NotImplementedException();
+        mainVM.View!.TextBoxDialog(label, message, title: title, isMultiline: allowMultiline, isReadOnly: true).WaitOnDispatcherFrame();
     }
 
     public void StartProgressBarUpdater()
@@ -390,11 +404,19 @@ public class ScriptGlobals : IScriptInterface
 
     public void UpdateProgressStatus(string status)
     {
-        loaderWindow!.SetTextToMessageAndStatus(status: status);
+        Dispatcher.UIThread.Post(() =>
+        {
+            loaderWindow!.SetTextToMessageAndStatus(status: status);
+        });
     }
 
     public void UpdateProgressValue(double progressValue)
     {
-        loaderWindow!.SetValue((int)progressValue);
+        loaderValue = (int)progressValue;
+
+        Dispatcher.UIThread.Post(() =>
+        {
+            loaderWindow!.SetValue(loaderValue);
+        });
     }
 }

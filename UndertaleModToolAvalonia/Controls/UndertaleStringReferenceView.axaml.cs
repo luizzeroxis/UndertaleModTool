@@ -6,9 +6,8 @@ using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Xaml.Interactions.DragAndDrop;
 using UndertaleModLib.Models;
-using UndertaleModToolAvalonia.Views;
 
-namespace UndertaleModToolAvalonia.Controls;
+namespace UndertaleModToolAvalonia;
 
 public partial class UndertaleStringReferenceView : UserControl
 {
@@ -89,7 +88,7 @@ public class UndertaleStringDropHandler : DropHandlerBase
     {
         if (targetContext is UndertaleStringReferenceView vm)
         {
-            if (sourceContext is TreeItemViewModel treeItem && treeItem.Value is UndertaleString resource)
+            if (sourceContext is MainViewModel.TreeDataGridItem item && item.Value is UndertaleString resource)
             {
                 return true;
             }
@@ -100,7 +99,7 @@ public class UndertaleStringDropHandler : DropHandlerBase
     {
         if (targetContext is UndertaleStringReferenceView vm)
         {
-            if (sourceContext is TreeItemViewModel treeItem && treeItem.Value is UndertaleString resource)
+            if (sourceContext is MainViewModel.TreeDataGridItem item && item.Value is UndertaleString resource)
             {
                 vm.Reference = resource;
                 return true;

@@ -7,7 +7,7 @@ using Avalonia.Input;
 using Avalonia.LogicalTree;
 using Avalonia.Threading;
 
-namespace UndertaleModToolAvalonia.Controls;
+namespace UndertaleModToolAvalonia;
 
 public partial class EditableDataGrid : UserControl
 {
@@ -35,6 +35,14 @@ public partial class EditableDataGrid : UserControl
         set { SetValue(SelectionChangedProperty, value); }
     }
 
+    public static readonly StyledProperty<DataGridHeadersVisibility> HeadersVisibilityProperty = AvaloniaProperty.Register<EditableDataGrid, DataGridHeadersVisibility>(
+        nameof(HeadersVisibility), DataGridHeadersVisibility.All);
+    public DataGridHeadersVisibility HeadersVisibility
+    {
+        get { return GetValue(HeadersVisibilityProperty); }
+        set { SetValue(HeadersVisibilityProperty, value); }
+    }
+
     public ObservableCollection<DataGridColumn> Columns
     {
         get => DataGridControl.Columns;
@@ -48,21 +56,18 @@ public partial class EditableDataGrid : UserControl
         }
     }
 
-    public DataGrid DataGridControl { get; set; }
-
     public EditableDataGrid()
     {
         InitializeComponent();
 
-        DataGridControl = this.Find<DataGrid>("DataGrid")!;
         DataGridControl.SelectionChanged += (object? sender, SelectionChangedEventArgs e) =>
         {
-            // Hack to make it so a temporary deselection when moving items doesn't stop the repeat button.
+            // HACK: Hack to make it so a temporary deselection when moving items doesn't stop the repeat button.
             Dispatcher.UIThread.Post(() =>
             {
-                this.Find<InputElement>("RemoveButton")!.IsEnabled = CanAdd && (DataGridControl.SelectedIndex != -1);
-                this.Find<InputElement>("MoveUpButton")!.IsEnabled = (DataGridControl.SelectedIndex > 0);
-                this.Find<InputElement>("MoveDownButton")!.IsEnabled = (DataGridControl.SelectedIndex < ItemsSource.Count - 1);
+                RemoveButton.IsEnabled = (DataGridControl.SelectedIndex != -1);
+                MoveUpButton.IsEnabled = (DataGridControl.SelectedIndex > 0);
+                MoveDownButton.IsEnabled = (DataGridControl.SelectedIndex < ItemsSource.Count - 1);
             });
 
             SelectionChanged?.Invoke(DataGridControl.SelectedItem);
@@ -76,14 +81,18 @@ public partial class EditableDataGrid : UserControl
                     row.IsSelected = true;
             }
         };
-        DataGridControl.Initialized += (object? sender, EventArgs e) =>
-        {
-            if (ItemsSource is not null && ItemsSource.Count > 0)
-                DataGrid.SelectedIndex = 0;
-        };
     }
 
-    public bool CanAdd => ItemFactory is not null;
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == ItemFactoryProperty)
+        {
+            AddButton.IsVisible = ItemFactory is not null;
+            RemoveButton.IsVisible = ItemFactory is not null;
+        }
+    }
 
     public void Add()
     {

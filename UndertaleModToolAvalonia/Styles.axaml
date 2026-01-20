@@ -4,6 +4,7 @@
     <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml"/>
     <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
     <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+    <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
 
     <!-- Basic controls -->
     <Style Selector="Window">
@@ -22,8 +23,8 @@
 
     <Style Selector="GridSplitter">
         <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
-        <Setter Property="MinWidth" Value="3"/>
-        <Setter Property="MinHeight" Value="3"/>
+        <Setter Property="MinWidth" Value="4"/>
+        <Setter Property="MinHeight" Value="4"/>
     </Style>
 
     <Style Selector="TabControl,TabStrip">
@@ -55,6 +56,31 @@
         <Setter Property="MinHeight" Value="12" />
     </Style>
 
+    <Style Selector="TreeDataGridRow">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TreeDataGridCellsPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
+    <Style Selector="TreeDataGridExpanderCell /template/ Border#CellBorder > DockPanel > Border">
+        <Style Selector="^:pointerover">
+            <Setter Property="Background" Value="{DynamicResource SystemControlBackgroundListLowBrush}" />
+        </Style>
+    </Style>
+
+    <Style Selector="TreeDataGridExpanderCell, TreeDataGridTemplateCell">
+        <Setter Property="MinHeight" Value="12" />
+    </Style>
+
+    <Style Selector="TreeDataGridTemplateCell > ContentPresenter > TextBlock">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Padding" Value="4,1,4,1" />
+        <Setter Property="TextWrapping" Value="NoWrap" />
+        <Setter Property="MaxLines" Value="1" />
+    </Style>
+
     <Style Selector="ColorPicker">
         <Setter Property="HorizontalAlignment" Value="Left" />
     </Style>
@@ -81,7 +107,7 @@
     <Style Selector="ScrollBar">
         <Setter Property="AllowAutoHide" Value="False"/>
     </Style>
-    <Style Selector=":is(ItemsControl)">
+    <Style Selector=":is(Control)">
         <Setter Property="ScrollViewer.AllowAutoHide" Value="False"/>
     </Style>
 
@@ -158,19 +184,6 @@
         <Setter Property="Margin" Value="0,4,0,0" />
     </Style>
 
-    <Style Selector=":is(Control)#DataTreeView">
-        <Setter Property="Margin" Value="0,4,0,0" />
-    </Style>
-
-    <Style Selector="ContentControl.ListBoxContentControl">
-        <Setter Property="Padding" Value="0,1" />
-    </Style>
-
-    <Style Selector="ContentControl.ListBoxContentControl TextBlock">
-        <Setter Property="TextWrapping" Value="NoWrap" />
-        <Setter Property="MaxLines" Value="1" />
-    </Style>
-
     <Style Selector=":is(Control).PaddedProperties">
         <Setter Property="Margin" Value="12,0,12,0" />
     </Style>
@@ -199,23 +212,28 @@
         </Style>
     </Style>
 
-    <Style Selector="Window.MessageWindow">
-        <Setter Property="Padding" Value="16,16,16,0" />
-    </Style>
-    <Style Selector="Window.MessageWindow TextBlock#MessageText">
-        <Setter Property="Margin" Value="0,0,0,16" />
-    </Style>
-    <Style Selector="Window.MessageWindow StackPanel#Buttons">
-        <Setter Property="Spacing" Value="16"/>
-    </Style>
-    <Style Selector="Window.MessageWindow StackPanel#Buttons > Button">
-        <Setter Property="Margin" Value="0,0,0,16" />
-        <Setter Property="MinWidth" Value="75" />
-        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Style Selector="Window.MessageWindow, Window.TextBoxWindow">
+        <Setter Property="Padding" Value="16,0,16,16" />
+
+        <Style Selector="^ TextBlock#MessageText">
+            <Setter Property="Margin" Value="0,16,0,0" />
+        </Style>
+        <Style Selector="^ TextBox#TextTextBox">
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+        </Style>
+        <Style Selector="^ StackPanel#Buttons">
+            <Setter Property="Margin" Value="0,16,0,0" />
+            <Setter Property="Spacing" Value="8"/>
+        </Style>
+        <Style Selector="^ StackPanel#Buttons > Button">
+            <Setter Property="MinWidth" Value="75" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
     </Style>
 
     <Style Selector="Window.LoaderWindow">
-        <Setter Property="Padding" Value="8" />
+        <Setter Property="Padding" Value="16" />
 
         <Style Selector="^ ProgressBar#LoadingProgressBar">
             <Setter Property="Margin" Value="0,8,0,0" />
@@ -224,7 +242,7 @@
     </Style>
 
     <Style Selector="Window.SettingsWindow">
-        <Setter Property="Padding" Value="8" />
+        <Setter Property="Padding" Value="16" />
     </Style>
 
     <Style Selector="Window.SearchInCodeWindow">
