@@ -69,4 +69,14 @@ public partial class UndertaleEmbeddedAudioViewModel : IUndertaleResourceViewMod
         using Stream stream = await file.OpenWriteAsync();
         stream.Write(EmbeddedAudio.Data);
     }
+
+    public async void Play()
+    {
+        await AudioPlayback.PlayResource(Resource);
+    }
+
+    public void Stop()
+    {
+        AudioPlayback.StopResource();
+    }
 }

@@ -12,4 +12,14 @@ public partial class UndertaleSoundViewModel : IUndertaleResourceViewModel
     {
         Sound = sound;
     }
+
+    public async void Play()
+    {
+        await AudioPlayback.PlayResource(Resource);
+    }
+
+    public void Stop()
+    {
+        AudioPlayback.StopResource();
+    }
 }

@@ -40,7 +40,12 @@
             <Label>Preload (old audio system)</Label>
             <CheckBox IsChecked="{Binding Sound.Preload}" />
 
-            <!-- TODO: Audio player -->
+            <!-- Empty label to align the buttons -->
+            <Label/>
+            <StackPanel Orientation="Horizontal" Spacing="5">
+                <Button Command="{Binding Play}">Play Audio</Button>
+                <Button Command="{Binding Stop}">Stop Audio</Button>
+            </StackPanel>
         </Grid>
     </ScrollViewer>
 </UserControl>
