@@ -107,7 +107,7 @@ public partial class EditableDataGrid : UserControl
         }
         else
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("EditableDataGrid requires ItemFactory to be a Func<object> or Func<int, object> before adding items.");
         }
 
         ItemsSource.Add(item);

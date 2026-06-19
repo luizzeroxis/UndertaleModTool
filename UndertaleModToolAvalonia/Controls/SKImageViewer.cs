@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -33,6 +33,49 @@ public class SKImageViewer : Control
     {
         get => GetValue(BindingsProperty);
         set => SetValue(BindingsProperty, value);
+    }
+
+    public static readonly StyledProperty<IReadOnlyList<UndertaleTexturePageItem>?> TexturePageItemsProperty =
+        AvaloniaProperty.Register<SKImageViewer, IReadOnlyList<UndertaleTexturePageItem>?>(nameof(TexturePageItems));
+
+    public IReadOnlyList<UndertaleTexturePageItem>? TexturePageItems
+    {
+        get => GetValue(TexturePageItemsProperty);
+        set => SetValue(TexturePageItemsProperty, value);
+    }
+
+    public static readonly StyledProperty<UndertaleTexturePageItem?> SelectedTexturePageItemProperty =
+        AvaloniaProperty.Register<SKImageViewer, UndertaleTexturePageItem?>(
+            nameof(SelectedTexturePageItem),
+            defaultBindingMode: BindingMode.TwoWay);
+
+    public UndertaleTexturePageItem? SelectedTexturePageItem
+    {
+        get => GetValue(SelectedTexturePageItemProperty);
+        set => SetValue(SelectedTexturePageItemProperty, value);
+    }
+
+    public static readonly StyledProperty<double> ZoomProperty =
+        AvaloniaProperty.Register<SKImageViewer, double>(
+            nameof(Zoom),
+            defaultValue: 1,
+            defaultBindingMode: BindingMode.TwoWay);
+
+    public double Zoom
+    {
+        get => GetValue(ZoomProperty);
+        set => SetValue(ZoomProperty, ClampZoom(value));
+    }
+
+    public static readonly StyledProperty<bool> IsRenderingEnabledProperty =
+        AvaloniaProperty.Register<SKImageViewer, bool>(
+            nameof(IsRenderingEnabled),
+            defaultValue: true);
+
+    public bool IsRenderingEnabled
+    {
+        get => GetValue(IsRenderingEnabledProperty);
+        set => SetValue(IsRenderingEnabledProperty, value);
     }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
@@ -85,8 +128,15 @@ public class SKImageViewer : Control
 
             Invalidate();
         }
-        else if (change.Property == BindingsProperty)
+        else if (change.Property == BindingsProperty ||
+                 change.Property == TexturePageItemsProperty ||
+                 change.Property == SelectedTexturePageItemProperty ||
+                 change.Property == ZoomProperty ||
+                 change.Property == IsRenderingEnabledProperty)
         {
+            if (change.Property == ZoomProperty)
+                Zoom = ClampZoom(Zoom);
+
             Invalidate();
         }
     }
@@ -97,6 +147,42 @@ public class SKImageViewer : Control
     {
         ClipToBounds = true;
         customDrawOperation = new CustomDrawOperation();
+        PointerReleased += SKImageViewer_PointerReleased;
+        PointerWheelChanged += SKImageViewer_PointerWheelChanged;
+    }
+
+    private void SKImageViewer_PointerReleased(object? sender, Avalonia.Input.PointerReleasedEventArgs e)
+    {
+        if (!IsRenderingEnabled ||
+            e.InitialPressMouseButton != Avalonia.Input.MouseButton.Left ||
+            TexturePageItems is null)
+            return;
+
+        Point pointerPosition = e.GetPosition(this);
+        Point point = new(pointerPosition.X / Zoom, pointerPosition.Y / Zoom);
+        SelectedTexturePageItem = TexturePageItems
+            .Where(item => item.SourceWidth > 0 && item.SourceHeight > 0)
+            .Where(item => point.X >= item.SourceX && point.X < item.SourceX + item.SourceWidth &&
+                           point.Y >= item.SourceY && point.Y < item.SourceY + item.SourceHeight)
+            .OrderBy(item => (long)item.SourceWidth * item.SourceHeight)
+            .FirstOrDefault();
+    }
+
+    private void SKImageViewer_PointerWheelChanged(object? sender, Avalonia.Input.PointerWheelEventArgs e)
+    {
+        if (e.Delta.Y == 0)
+            return;
+
+        Zoom = ClampZoom(Zoom * (e.Delta.Y > 0 ? 2 : 0.5));
+        e.Handled = true;
+    }
+
+    static double ClampZoom(double zoom)
+    {
+        if (double.IsNaN(zoom) || double.IsInfinity(zoom))
+            return 1;
+
+        return Math.Clamp(zoom, 0.125, 32);
     }
 
     void Invalidate()
@@ -111,14 +197,18 @@ public class SKImageViewer : Control
 
     Size GetSize()
     {
-        if (Image is UndertaleTexturePageItem texturePageItem)
-            return new Size(texturePageItem.BoundingWidth, texturePageItem.BoundingHeight);
-        else if (Image is GMImage gmImage)
-            return new Size(gmImage.Width, gmImage.Height);
-        else if (Image is UndertaleSprite.MaskEntry maskEntry)
-            return new Size(maskEntry.Width, maskEntry.Height);
+        Size size;
 
-        return new Size(0, 0);
+        if (Image is UndertaleTexturePageItem texturePageItem)
+            size = new Size(texturePageItem.BoundingWidth, texturePageItem.BoundingHeight);
+        else if (Image is GMImage gmImage)
+            size = new Size(gmImage.Width, gmImage.Height);
+        else if (Image is UndertaleSprite.MaskEntry maskEntry)
+            size = new Size(maskEntry.Width, maskEntry.Height);
+        else
+            size = new Size(0, 0);
+
+        return size * Zoom;
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -131,6 +221,10 @@ public class SKImageViewer : Control
         Size size = GetSize();
         customDrawOperation.Bounds = new Rect(0, 0, size.Width, size.Height);
         customDrawOperation.Image = Image;
+        customDrawOperation.TexturePageItems = TexturePageItems;
+        customDrawOperation.SelectedTexturePageItem = SelectedTexturePageItem;
+        customDrawOperation.Zoom = Zoom;
+        customDrawOperation.IsRenderingEnabled = IsRenderingEnabled;
 
         context.Custom(customDrawOperation);
     }
@@ -140,6 +234,10 @@ public class SKImageViewer : Control
         public Rect Bounds { get; set; }
 
         public object? Image;
+        public IReadOnlyList<UndertaleTexturePageItem>? TexturePageItems;
+        public UndertaleTexturePageItem? SelectedTexturePageItem;
+        public double Zoom = 1;
+        public bool IsRenderingEnabled = true;
 
         readonly MainViewModel mainVM = App.Services.GetRequiredService<MainViewModel>();
 
@@ -164,16 +262,28 @@ public class SKImageViewer : Control
                 using var lease = leaseFeature.Lease();
                 SKCanvas canvas = lease.SkCanvas;
                 canvas.Save();
+                double zoom = ClampZoom(Zoom);
+                canvas.Scale((float)zoom);
+
+                float naturalWidth = (float)(Bounds.Width / zoom);
+                float naturalHeight = (float)(Bounds.Height / zoom);
+
+                if (!IsRenderingEnabled)
+                {
+                    RenderPlaceholder(canvas, naturalWidth, naturalHeight);
+                    canvas.Restore();
+                    return;
+                }
 
                 // Checkered background
                 int gridSize = 8;
-                SKPaint gridColor1 = new SKPaint { Color = new SKColor(102, 102, 102) };
-                SKPaint gridColor2 = new SKPaint { Color = new SKColor(153, 153, 153) };
+                using SKPaint gridColor1 = new() { Color = new SKColor(102, 102, 102) };
+                using SKPaint gridColor2 = new() { Color = new SKColor(153, 153, 153) };
 
-                canvas.DrawRect(SKRect.Create(0, 0, (float)Bounds.Width, (float)Bounds.Height), gridColor1);
+                canvas.DrawRect(SKRect.Create(0, 0, naturalWidth, naturalHeight), gridColor1);
 
-                for (int x = 0; x < Bounds.Width / gridSize; x++)
-                    for (int y = 0; y < Bounds.Height / gridSize; y++)
+                for (int x = 0; x < naturalWidth / gridSize; x++)
+                    for (int y = 0; y < naturalHeight / gridSize; y++)
                     {
                         if ((x + y) % 2 != 0)
                             canvas.DrawRect(SKRect.Create(x * gridSize, y * gridSize, gridSize, gridSize), gridColor2);
@@ -181,14 +291,37 @@ public class SKImageViewer : Control
 
                 // Image
                 RenderImage(canvas);
+                RenderTexturePageItemSelection(canvas);
 
                 canvas.Restore();
             }
-            catch (Exception e)
+            catch (Exception)
             {
-                Debugger.Break();
                 throw;
             }
+        }
+
+        static void RenderPlaceholder(SKCanvas canvas, float width, float height)
+        {
+            if (width <= 0 || height <= 0)
+                return;
+
+            using SKPaint fillPaint = new()
+            {
+                Color = new SKColor(35, 39, 45),
+                Style = SKPaintStyle.Fill
+            };
+            using SKPaint strokePaint = new()
+            {
+                Color = new SKColor(78, 86, 96),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 1,
+                IsAntialias = false
+            };
+
+            SKRect rect = SKRect.Create(0, 0, width, height);
+            canvas.DrawRect(rect, fillPaint);
+            canvas.DrawRect(rect, strokePaint);
         }
 
         public void RenderImage(SKCanvas canvas)
@@ -233,6 +366,38 @@ public class SKImageViewer : Control
                 SKImage image = SKImage.FromPixelCopy(new SKImageInfo(maskEntry.Width, maskEntry.Height, SKColorType.Gray8), pixels);
                 canvas.DrawImage(image, 0, 0);
             }
+        }
+
+        void RenderTexturePageItemSelection(SKCanvas canvas)
+        {
+            if (SelectedTexturePageItem is null || TexturePageItems is null || Image is not GMImage gmImage)
+                return;
+
+            if (!TexturePageItems.Contains(SelectedTexturePageItem) ||
+                SelectedTexturePageItem.TexturePage?.TextureData?.Image != gmImage)
+                return;
+
+            SKRect rect = SKRect.Create(
+                SelectedTexturePageItem.SourceX,
+                SelectedTexturePageItem.SourceY,
+                SelectedTexturePageItem.SourceWidth,
+                SelectedTexturePageItem.SourceHeight);
+
+            using SKPaint fillPaint = new()
+            {
+                Color = new SKColor(73, 130, 188, 72),
+                Style = SKPaintStyle.Fill
+            };
+            using SKPaint strokePaint = new()
+            {
+                Color = new SKColor(124, 184, 255, 220),
+                Style = SKPaintStyle.Stroke,
+                StrokeWidth = 2,
+                IsAntialias = false
+            };
+
+            canvas.DrawRect(rect, fillPaint);
+            canvas.DrawRect(rect, strokePaint);
         }
     }
 }

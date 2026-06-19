@@ -1,9 +1,11 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.DependencyInjection;
@@ -52,6 +54,12 @@ public partial class UndertaleRoomViewModel : IUndertaleResourceViewModel
     private double _Zoom = 1;
 
     [Notify]
+    private bool _IsPreviewRendered;
+
+    [Notify]
+    private string _PreviewStatus = "";
+
+    [Notify]
     private uint _SelectedTileData = 0;
     [Notify]
     private uint _TileSetColumns = 0;
@@ -83,6 +91,49 @@ public partial class UndertaleRoomViewModel : IUndertaleResourceViewModel
         if (isGMS2)
             RoomTreeItems.Add(new("Layers", "Layers", Room.Layers));
 
+        ResetPreviewState();
+    }
+
+    public void OnAttached()
+    {
+        if (MainVM.Settings is not null)
+            MainVM.Settings.PropertyChanged += Settings_PropertyChanged;
+    }
+
+    public void OnDetached()
+    {
+        if (MainVM.Settings is not null)
+            MainVM.Settings.PropertyChanged -= Settings_PropertyChanged;
+    }
+
+    public void RenderPreview()
+    {
+        IsPreviewRendered = true;
+        UpdatePreviewStatus();
+    }
+
+    void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(SettingsFile.AutomaticallyRenderImagePreviews))
+            ResetPreviewState();
+    }
+
+    void ResetPreviewState()
+    {
+        IsPreviewRendered = ShouldRenderImagePreviewsAutomatically();
+        UpdatePreviewStatus();
+    }
+
+    void UpdatePreviewStatus()
+    {
+        PreviewStatus = IsPreviewRendered
+            ? "Room preview rendered."
+            : "Room preview not rendered.";
+    }
+
+    bool ShouldRenderImagePreviewsAutomatically()
+    {
+        return MainVM.Settings?.AutomaticallyRenderImagePreviews ?? true;
     }
 
     public void AddLayer(LayerType type)
@@ -342,7 +393,7 @@ public partial class UndertaleRoomViewModel : IUndertaleResourceViewModel
         return null;
     }
 
-    public async void AutoSizeTileLayer()
+    public void AutoSizeTileLayer()
     {
         if (PropertiesContent is Layer layer)
         {
@@ -381,7 +432,15 @@ public partial class UndertaleRoomViewModel : IUndertaleResourceViewModel
 
     public async void SaveAsImage()
     {
-        IStorageFile? file = await MainVM.View!.SaveFileDialog(new FilePickerSaveOptions()
+        await SaveAsImageTask();
+    }
+
+    public async Task<bool> SaveAsImageTask()
+    {
+        if (MainVM.View is not { } view)
+            return false;
+
+        IStorageFile? file = await view.SaveFileDialog(new FilePickerSaveOptions()
         {
             Title = "Save image",
             FileTypeChoices = FilePickerFileTypes.PNG,
@@ -390,12 +449,14 @@ public partial class UndertaleRoomViewModel : IUndertaleResourceViewModel
         });
 
         if (file is null)
-            return;
+            return false;
 
         using (Stream stream = await file.OpenWriteAsync())
         {
             await ImportExport.ExportRoomAsPNG(Room, stream);
         }
+
+        return true;
     }
 
     private void OnRoomTreeItemsSelectedItemChanged()

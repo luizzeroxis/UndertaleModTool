@@ -99,6 +99,26 @@ public partial class MainViewModel
     [Notify]
     private string _CommandTextBoxText = "";
 
+    public async void RunCommandText()
+    {
+        await RunCommandTextAsync();
+    }
+
+    public async Task RunCommandTextAsync()
+    {
+        string text = CommandTextBoxText.Trim('\r', '\n');
+        if (String.IsNullOrWhiteSpace(text))
+            return;
+
+        object? result = await Scripting.RunScript(text);
+        if (!Scripting.ConsumeFinishedMessageEnabled())
+            return;
+
+        CommandTextBoxText = Scripting.ScriptExecutionSuccess
+            ? result?.ToString() ?? ""
+            : Scripting.ScriptErrorMessage;
+    }
+
     // Image cache
     public ImageCache ImageCache = new();
 
@@ -109,7 +129,7 @@ public partial class MainViewModel
     {
         ServiceProvider = serviceProvider;
 
-        AudioPlayer.Init(f => Dispatcher.UIThread.Post(f));
+        AudioPlayer.Configure(f => Dispatcher.UIThread.Post(f));
 
         Tabs = [
             new TabItemViewModel(new DescriptionViewModel(
@@ -129,9 +149,17 @@ public partial class MainViewModel
 
     public async void OnLoaded()
     {
+        await OnLoadedTask();
+    }
+
+    public async Task<bool> OnLoadedTask()
+    {
+        if (View is null)
+            return false;
+
         foreach (string message in LazyErrorMessages)
         {
-            await View!.MessageDialog(message);
+            await View.MessageDialog(message);
         }
         LazyErrorMessages.Clear();
 
@@ -149,26 +177,33 @@ public partial class MainViewModel
                 }
                 catch (SystemException e)
                 {
-                    await View!.MessageDialog($"Error opening data file from argument: {e.Message}");
+                    await View.MessageDialog($"Error opening data file from argument: {e.Message}");
                 }
             }
         }
+
+        return true;
     }
 
     public async void OpenDroppedFiles(IEnumerable<IStorageItem>? files)
     {
+        await OpenDroppedFilesTask(files);
+    }
+
+    public async Task<bool> OpenDroppedFilesTask(IEnumerable<IStorageItem>? files)
+    {
         if (files is null)
-            return;
+            return false;
 
         var list = files.ToList();
         if (list.Count != 1)
-            return;
+            return false;
 
         if (list[0] is not IStorageFile file)
-            return;
+            return false;
 
         if (!await AskFileSave("Save data file before opening a new one?"))
-            return;
+            return false;
 
         CloseData();
 
@@ -177,7 +212,10 @@ public partial class MainViewModel
         if (await LoadData(stream))
         {
             DataPath = file.TryGetLocalPath();
+            return true;
         }
+
+        return false;
     }
 
     // Called by [Notify]
@@ -341,8 +379,10 @@ public partial class MainViewModel
     {
         if (Data is null)
             return true;
+        if (View is null)
+            return false;
 
-        var result = await View!.MessageDialog(message, buttons: MessageWindow.Buttons.YesNoCancel);
+        var result = await View.MessageDialog(message, buttons: MessageWindow.Buttons.YesNoCancel);
         if (result == MessageWindow.Result.Yes)
         {
             if (await FileSaveTask())
@@ -364,8 +404,10 @@ public partial class MainViewModel
     {
         if (Project is null || !Project.HasUnexportedAssets)
             return true;
+        if (View is null)
+            return false;
 
-        var result = await View!.MessageDialog(message, buttons: MessageWindow.Buttons.YesNoCancel);
+        var result = await View.MessageDialog(message, buttons: MessageWindow.Buttons.YesNoCancel);
         if (result == MessageWindow.Result.Yes)
         {
             if (await ProjectSaveTask())
@@ -393,9 +435,12 @@ public partial class MainViewModel
 
     public async Task<bool> LoadData(Stream stream)
     {
+        if (View is not { } view)
+            return false;
+
         IsEnabled = false;
 
-        ILoaderWindow w = View!.LoaderOpen();
+        ILoaderWindow w = view.LoaderOpen();
         w.SetText("Opening data file...");
 
         try
@@ -421,7 +466,7 @@ public partial class MainViewModel
             if (warnings.Count > 0)
             {
                 w.EnsureShown();
-                await View!.MessageDialog($"Warnings occurred when loading the data file:\n\n" +
+                await view.MessageDialog($"Warnings occurred when loading the data file:\n\n" +
                     $"{(hadImportantWarnings ? "Data loss will likely occur when trying to save.\n" : "")}" +
                     $"{String.Join("\n", warnings)}");
             }
@@ -435,7 +480,7 @@ public partial class MainViewModel
         catch (Exception e)
         {
             w.EnsureShown();
-            await View!.MessageDialog($"Error opening data file: {e.Message}");
+            await view.MessageDialog($"Error opening data file: {e.Message}");
 
             return false;
         }
@@ -448,9 +493,14 @@ public partial class MainViewModel
 
     public async Task<bool> SaveData(Stream stream)
     {
+        if (Data is null)
+            return false;
+        if (View is not { } view)
+            return false;
+
         IsEnabled = false;
 
-        ILoaderWindow w = View!.LoaderOpen();
+        ILoaderWindow w = view.LoaderOpen();
         w.SetText("Saving data file...");
 
         try
@@ -471,12 +521,12 @@ public partial class MainViewModel
         catch (ProjectException e)
         {
             w.EnsureShown();
-            await View!.MessageDialog($"Recompile error:\n{e.Message}");
+            await view.MessageDialog($"Recompile error:\n{e.Message}");
         }
         catch (Exception e)
         {
             w.EnsureShown();
-            await View!.MessageDialog($"Error saving data file:\n{e.Message}");
+            await view.MessageDialog($"Error saving data file:\n{e.Message}");
         }
         finally
         {
@@ -526,28 +576,43 @@ public partial class MainViewModel
     // Menus
     public async void FileNew()
     {
+        await FileNewTask();
+    }
+
+    public async Task<bool> FileNewTask()
+    {
         if (await AskProjectSave("There are assets marked to be exported in the current project. Save project before closing it?")
             && await AskFileSave("Save data file before creating a new one?"))
         {
             await NewData();
+            return true;
         }
+
+        return false;
     }
 
     public async void FileOpen()
     {
-        if (!await AskProjectSave("There are assets marked to be exported in the current project. Save project before closing it?"))
-            return;
-        if (!await AskFileSave("Save data file before opening a new one?"))
-            return;
+        await FileOpenTask();
+    }
 
-        var files = await View!.OpenFileDialog(new FilePickerOpenOptions()
+    public async Task<bool> FileOpenTask()
+    {
+        if (!await AskProjectSave("There are assets marked to be exported in the current project. Save project before closing it?"))
+            return false;
+        if (!await AskFileSave("Save data file before opening a new one?"))
+            return false;
+        if (View is null)
+            return false;
+
+        var files = await View.OpenFileDialog(new FilePickerOpenOptions()
         {
             Title = "Open data file",
             FileTypeFilter = FilePickerFileTypes.Data,
         });
 
         if (files.Count != 1)
-            return;
+            return false;
 
         CloseData();
 
@@ -556,7 +621,10 @@ public partial class MainViewModel
         if (await LoadData(stream))
         {
             DataPath = files[0].TryGetLocalPath();
+            return true;
         }
+
+        return false;
     }
 
     public async void FileSave()
@@ -568,10 +636,12 @@ public partial class MainViewModel
     {
         if (Data is null)
             return false;
+        if (View is null)
+            return false;
 
         if (Project is not null)
         {
-            var result = await View!.MessageDialog("Save to the project's designated data file for saving?", buttons: MessageWindow.Buttons.YesNoCancel);
+            var result = await View.MessageDialog("Save to the project's designated data file for saving?", buttons: MessageWindow.Buttons.YesNoCancel);
             if (result == MessageWindow.Result.Yes)
             {
                 using FileStream fileStream = File.Open(Project.SaveDataPath, FileMode.Create);
@@ -588,7 +658,7 @@ public partial class MainViewModel
             // If pressed No, continue saving as if there's no project.
         }
 
-        IStorageFile? file = await View!.SaveFileDialog(new FilePickerSaveOptions()
+        IStorageFile? file = await View.SaveFileDialog(new FilePickerSaveOptions()
         {
             Title = "Save data file",
             FileTypeChoices = FilePickerFileTypes.Data,
@@ -611,48 +681,62 @@ public partial class MainViewModel
 
     public async void FileClose()
     {
+        await FileCloseTask();
+    }
+
+    public async Task<bool> FileCloseTask()
+    {
         if (!await AskProjectSave("There are assets marked to be exported in the current project. Save project before closing it?"))
-            return;
+            return false;
         if (!await AskFileSave("Save data file before closing?"))
-            return;
+            return false;
 
         CloseData();
+        return true;
     }
 
     public async void FileRun()
     {
+        await FileRunTask();
+    }
+
+    public async Task<bool> FileRunTask()
+    {
         // NOTE: The project system would make this a lot simpler!
         if (Data is null)
-            return;
+            return false;
+        if (View is null)
+            return false;
 
         string question = $"Save data file before running? {(DataPath is null
             ? " It must be saved before running."
             : $"If it's not saved, the data file at the last location will be used (\"{DataPath}\").")}";
 
         if (!await AskFileSave(question))
-            return;
+            return false;
 
         if (DataPath is null)
-            return;
+            return false;
 
-        var files = await View!.OpenFileDialog(new FilePickerOpenOptions()
+        var files = await View.OpenFileDialog(new FilePickerOpenOptions()
         {
             Title = "Open runner",
             FileTypeFilter = FilePickerFileTypes.All,
         });
 
         if (files.Count != 1)
-            return;
+            return false;
 
         string runnerPath = files[0].TryGetLocalPath() ?? string.Empty;
         if (runnerPath == string.Empty)
-            return;
+            return false;
 
         if (!File.Exists(DataPath))
-            return;
+            return false;
 
         // "launcher" allows game_change data files to still access files above the data path.
         Process.Start(new ProcessStartInfo(runnerPath, $"-game \"{DataPath}\" launcher") { WorkingDirectory = Path.GetDirectoryName(DataPath) });
+        return true;
     }
 
     public async void FileSettings()
@@ -677,26 +761,65 @@ public partial class MainViewModel
 
     public async void ScriptsRunOtherScript()
     {
-        var files = await View!.OpenFileDialog(new FilePickerOpenOptions()
+        await ScriptsRunOtherScriptTask();
+    }
+
+    public async Task<bool> ScriptsRunOtherScriptTask()
+    {
+        if (View is null)
+            return false;
+
+        var files = await View.OpenFileDialog(new FilePickerOpenOptions()
         {
             Title = "Run script",
             FileTypeFilter = FilePickerFileTypes.CS,
         });
 
         if (files.Count != 1)
-            return;
+            return false;
 
-        string text;
+        string? filePath = files[0].TryGetLocalPath();
+        if (filePath is not null && File.Exists(filePath))
+        {
+            return await RunScriptFileAsync(filePath);
+        }
+
         using (Stream stream = await files[0].OpenReadAsync())
         {
             using StreamReader streamReader = new(stream);
-            text = streamReader.ReadToEnd();
+            string text = await streamReader.ReadToEndAsync();
+            await RunScriptTextAsync(text, filePath, files[0].Name);
         }
 
-        string? filePath = files[0].TryGetLocalPath();
+        return true;
+    }
+
+    public async Task<bool> RunScriptFileAsync(string filePath)
+    {
+        if (!File.Exists(filePath))
+        {
+            if (View is null)
+                return false;
+
+            await View.MessageDialog("The script file doesn't exist.");
+            return false;
+        }
+
+        string text = await File.ReadAllTextAsync(filePath);
+        await RunScriptTextAsync(text, filePath, Path.GetFileName(filePath) ?? "Script");
+        return true;
+    }
+
+    private async Task RunScriptTextAsync(string text, string? filePath, string displayName)
+    {
         await Scripting.RunScript(text, filePath);
 
-        CommandTextBoxText = $"{Path.GetFileName(filePath) ?? "Script"} finished!";
+        if (!Scripting.ConsumeFinishedMessageEnabled())
+            return;
+
+        CommandTextBoxText = Scripting.ScriptExecutionSuccess
+            ? $"{displayName} finished!"
+            : Scripting.ScriptErrorMessage;
     }
 
     void ClearProject()
@@ -720,9 +843,12 @@ public partial class MainViewModel
 
     async Task<string?> AskProjectDestinationDataFile()
     {
+        if (View is null)
+            return null;
+
         // Destination data file
         // TODO: Check if same as source and if empty directory
-        IStorageFile? destinationDataFile = await View!.SaveFileDialog(new()
+        IStorageFile? destinationDataFile = await View.SaveFileDialog(new()
         {
             Title = "Select destination data file location",
             FileTypeChoices = FilePickerFileTypes.Data,
@@ -734,33 +860,38 @@ public partial class MainViewModel
 
     public async void ProjectNew()
     {
+        await ProjectNewTask();
+    }
+
+    public async Task<bool> ProjectNewTask()
+    {
         // TODO: Ask for source data file if nothing is opened
         if (Data is null || DataPath is null)
-            return;
+            return false;
+        if (View is null)
+            return false;
 
         if (!await AskProjectSave("There are assets marked to be exported in the current project. Save project before creating a new one?"))
-            return;
-
-        ClearProject();
+            return false;
 
         // Project name
-        string? projectName = await View!.TextBoxDialog("Project name:", $"{Data.GeneralInfo?.DisplayName?.Content ?? "New"} Mod");
+        string? projectName = await View.TextBoxDialog("Project name:", $"{Data.GeneralInfo?.DisplayName?.Content ?? "New"} Mod");
         if (projectName is null)
-            return;
+            return false;
 
         // Project folder
-        IReadOnlyList<IStorageFolder> projectFolderList = await View!.OpenFolderDialog(new() { Title = "Select project folder" });
+        IReadOnlyList<IStorageFolder> projectFolderList = await View.OpenFolderDialog(new() { Title = "Select project folder" });
         string? projectFolderPath = projectFolderList.ElementAtOrDefault(0)?.TryGetLocalPath();
 
         if (projectFolderPath is null)
-            return;
+            return false;
 
         string projectFilePath = Path.Join(projectFolderPath, "project.json");
 
         // Destination data file
         string? destinationDataPath = await AskProjectDestinationDataFile();
         if (destinationDataPath is null)
-            return;
+            return false;
 
         ProjectContext projectContext;
         try
@@ -769,42 +900,51 @@ public partial class MainViewModel
         }
         catch (ProjectException e)
         {
-            await View!.MessageDialog($"Failed to create new project:\n{e.Message}");
-            return;
+            await View.MessageDialog($"Failed to create new project:\n{e.Message}");
+            return false;
         }
         catch (Exception e)
         {
-            await View!.MessageDialog($"Error occurred when creating new project:\n{e}");
-            return;
+            await View.MessageDialog($"Error occurred when creating new project:\n{e}");
+            return false;
         }
 
         DataPath = destinationDataPath;
+        ClearProject();
         SetProject(projectContext);
+        return true;
     }
 
     public async void ProjectOpen()
     {
+        await ProjectOpenTask();
+    }
+
+    public async Task<bool> ProjectOpenTask()
+    {
         // TODO: Ask for source data file if nothing is opened
         if (Data is null || DataPath is null)
-            return;
+            return false;
+        if (View is null)
+            return false;
 
         if (!await AskProjectSave("There are assets marked to be exported in the current project. Save project before opening a new one?"))
-            return;
-
-        ClearProject();
+            return false;
 
         // Project file
-        IReadOnlyList<IStorageFile> projectFileList = await View!.OpenFileDialog(new()
+        IReadOnlyList<IStorageFile> projectFileList = await View.OpenFileDialog(new()
         {
             Title = "Select project.json file",
             FileTypeFilter = FilePickerFileTypes.JSON,
         });
         string? projectFilePath = projectFileList.ElementAtOrDefault(0)?.TryGetLocalPath();
+        if (projectFilePath is null)
+            return false;
 
         // Destination data file
         string? destinationDataPath = await AskProjectDestinationDataFile();
         if (destinationDataPath is null)
-            return;
+            return false;
 
         ProjectContext projectContext;
         try
@@ -814,17 +954,19 @@ public partial class MainViewModel
         }
         catch (ProjectException e)
         {
-            await View!.MessageDialog($"Failed to load project:\n{e.Message}");
-            return;
+            await View.MessageDialog($"Failed to load project:\n{e.Message}");
+            return false;
         }
         catch (Exception e)
         {
-            await View!.MessageDialog($"Error occurred when loading project:\n{e}");
-            return;
+            await View.MessageDialog($"Error occurred when loading project:\n{e}");
+            return false;
         }
 
         DataPath = destinationDataPath;
+        ClearProject();
         SetProject(projectContext);
+        return true;
     }
 
     public async void ProjectSave()
@@ -844,17 +986,25 @@ public partial class MainViewModel
         }
         catch (ProjectException e)
         {
-            await View!.MessageDialog($"Failed to save project:\n{e.Message}");
+            string message = $"Failed to save project:\n{e.Message}";
+            if (View is null)
+                LazyErrorMessages.Add(message);
+            else
+                await View.MessageDialog(message);
         }
         catch (Exception e)
         {
-            await View!.MessageDialog($"Error occurred when saving project:\n{e}");
+            string message = $"Error occurred when saving project:\n{e}";
+            if (View is null)
+                LazyErrorMessages.Add(message);
+            else
+                await View.MessageDialog(message);
         }
 
         return false;
     }
 
-    public async void ProjectViewUnexportedAssets()
+    public void ProjectViewUnexportedAssets()
     {
         if (Project is null || Data is null || DataPath is null)
             return;
@@ -865,21 +1015,44 @@ public partial class MainViewModel
 
     public async void ProjectClose()
     {
+        await ProjectCloseTask();
+    }
+
+    public async Task<bool> ProjectCloseTask()
+    {
         if (!await AskProjectSave("There are assets marked to be exported in the current project. Save project before closing?"))
-            return;
+            return false;
 
         ClearProject();
+        return true;
     }
 
     public async void HelpGitHub()
     {
-        await View!.LaunchUriAsync(new Uri("https://github.com/UnderminersTeam/UndertaleModTool"));
+        await HelpGitHubTask();
+    }
+
+    public async Task<bool> HelpGitHubTask()
+    {
+        if (View is null)
+            return false;
+
+        return await View.LaunchUriAsync(new Uri("https://github.com/UnderminersTeam/UndertaleModTool"));
     }
 
     public async void HelpAbout()
     {
-        await View!.MessageDialog($"UndertaleModTool v{Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?.?.?.?"} " +
+        await HelpAboutTask();
+    }
+
+    public async Task<bool> HelpAboutTask()
+    {
+        if (View is null)
+            return false;
+
+        await View.MessageDialog($"UndertaleModTool v{Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "?.?.?.?"} " +
             $"by the Underminers team\nLicensed under the GNU General Public License Version 3.", title: "About");
+        return true;
     }
 
     public void SetFilterText(string text)
@@ -889,17 +1062,25 @@ public partial class MainViewModel
 
     public async void DataItemAdd(IList list)
     {
+        await DataItemAddTask(list);
+    }
+
+    public async Task<bool> DataItemAddTask(IList? list)
+    {
         if (Data is null || list is null)
-            return;
+            return false;
 
         UndertaleResource res = UndertaleData.CreateResource(list);
 
         string? name = UndertaleData.GetDefaultResourceName(list);
         if (name is not null)
         {
-            name = await View!.TextBoxDialog("Name of new asset:", name);
+            if (View is null)
+                return false;
+
+            name = await View.TextBoxDialog("Name of new asset:", name);
             if (name is null)
-                return;
+                return false;
 
             static bool IsValidAssetIdentifier(string name)
             {
@@ -919,8 +1100,8 @@ public partial class MainViewModel
 
             if (!IsValidAssetIdentifier(name))
             {
-                await View!.MessageDialog($"Asset name \"{name}\" is not a valid identifier. Only letters, digits and underscore allowed, and it must not start with a digit.");
-                return;
+                await View.MessageDialog($"Asset name \"{name}\" is not a valid identifier. Only letters, digits and underscore allowed, and it must not start with a digit.");
+                return false;
             }
         }
 
@@ -928,7 +1109,10 @@ public partial class MainViewModel
 
         if (res is UndertaleRoom room)
         {
-            if (await View!.MessageDialog("Add the new room to the end of the room order list?", buttons: MessageWindow.Buttons.YesNo) == MessageWindow.Result.Yes)
+            if (View is null)
+                return false;
+
+            if (await View.MessageDialog("Add the new room to the end of the room order list?", buttons: MessageWindow.Buttons.YesNo) == MessageWindow.Result.Yes)
                 Data.GeneralInfo?.RoomOrder.Add(new(room));
         }
 
@@ -951,27 +1135,39 @@ public partial class MainViewModel
         {
             TabOpen(res, inNewTab: true);
         }
+
+        return true;
     }
 
     public async void DataItemRemove(UndertaleResource resource)
     {
+        await DataItemRemoveTask(resource);
+    }
+
+    public async Task<bool> DataItemRemoveTask(UndertaleResource resource)
+    {
         if (Data is null)
-            return;
+            return false;
 
-        if (await View!.MessageDialog($"Delete {resource}?\nNote that the code often references objects by ID, " +
-                    $"so this operation is likely to break stuff because other items will shift up!",
-                    buttons: MessageWindow.Buttons.YesNo) == MessageWindow.Result.Yes)
+        if (View is null)
+            return false;
+
+        if (await View.MessageDialog($"Delete {resource}?\nNote that the code often references objects by ID, " +
+                $"so this operation is likely to break stuff because other items will shift up!",
+                buttons: MessageWindow.Buttons.YesNo) != MessageWindow.Result.Yes)
+            return false;
+
+        // TODO: Maybe do something about all references to this.
+        Data[resource.GetType()].Remove(resource);
+
+        if (Project is not null && resource is IProjectAsset projectAsset)
         {
-            // TODO: Maybe do something about all references to this.
-            Data[resource.GetType()].Remove(resource);
-
-            if (Project is not null && resource is IProjectAsset projectAsset)
-            {
-                Project.UnmarkAssetForExport(projectAsset);
-            }
-
-            // TODO: Close tabs, remove histories
+            Project.UnmarkAssetForExport(projectAsset);
         }
+
+        // TODO: Close tabs, remove histories
+
+        return true;
     }
 
     public TabItemViewModel? TabOpen(object? item, bool inNewTab = false)
@@ -988,11 +1184,11 @@ public partial class MainViewModel
             UndertaleAudioGroup r => new UndertaleAudioGroupViewModel(r),
             UndertaleSound r => new UndertaleSoundViewModel(r, ServiceProvider),
             UndertaleSprite r => new UndertaleSpriteViewModel(r, ServiceProvider),
-            UndertaleBackground r => new UndertaleBackgroundViewModel(r),
+            UndertaleBackground r => new UndertaleBackgroundViewModel(r, ServiceProvider),
             UndertalePath r => new UndertalePathViewModel(r),
             UndertaleScript r => new UndertaleScriptViewModel(r),
             UndertaleShader r => new UndertaleShaderViewModel(r, ServiceProvider),
-            UndertaleFont r => new UndertaleFontViewModel(r),
+            UndertaleFont r => new UndertaleFontViewModel(r, ServiceProvider),
             UndertaleTimeline r => new UndertaleTimelineViewModel(r),
             UndertaleGameObject r => new UndertaleGameObjectViewModel(r, ServiceProvider),
             UndertaleRoom r => new UndertaleRoomViewModel(r, ServiceProvider),
@@ -1006,7 +1202,7 @@ public partial class MainViewModel
             UndertaleEmbeddedTexture r => new UndertaleEmbeddedTextureViewModel(r, ServiceProvider),
             UndertaleEmbeddedAudio r => new UndertaleEmbeddedAudioViewModel(r, ServiceProvider),
             UndertaleTextureGroupInfo r => new UndertaleTextureGroupInfoViewModel(r),
-            UndertaleEmbeddedImage r => new UndertaleEmbeddedImageViewModel(r),
+            UndertaleEmbeddedImage r => new UndertaleEmbeddedImageViewModel(r, ServiceProvider),
             UndertaleAnimationCurve r => new UndertaleAnimationCurveViewModel(r),
             UndertaleParticleSystem r => new UndertaleParticleSystemViewModel(r),
             UndertaleParticleSystemEmitter r => new UndertaleParticleSystemEmitterViewModel(r),

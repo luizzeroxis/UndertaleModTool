@@ -13,9 +13,9 @@ namespace UndertaleModToolAvalonia;
 
 public partial class FlagsBoxView : UserControl
 {
-    public static readonly StyledProperty<dynamic> ValueProperty = AvaloniaProperty.Register<FlagsBoxView, dynamic>(
+    public static readonly StyledProperty<object?> ValueProperty = AvaloniaProperty.Register<FlagsBoxView, object?>(
         nameof(Value), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
-    public dynamic Value
+    public object? Value
     {
         get { return GetValue(ValueProperty); }
         set { SetValue(ValueProperty, value); }
@@ -78,17 +78,20 @@ public partial class FlagsBoxView : UserControl
 
     public void Checked_IsCheckChanged(object? sender, RoutedEventArgs e)
     {
-        CheckBox checkBox = (sender as CheckBox)!;
+        if (Value is null || sender is not CheckBox checkBox)
+            return;
+
         if (checkBox.DataContext is Flag flag)
         {
             if (checkBox.IsChecked == true)
             {
-                Value |= flag.FlagEnum;
+                dynamic value = Value!;
+                Value = value | flag.FlagEnum;
             }
             else
             {
-                Value &= ~flag.FlagEnum;
-                Enum test = (Enum)Enum.ToObject(Value.GetType(), 42);
+                dynamic value = Value!;
+                Value = value & ~flag.FlagEnum;
             }
         }
     }
@@ -107,10 +110,14 @@ public class FlagEnumToStringConverter : IValueConverter
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        DataValidationErrors.SetError(View!.ValueTextBox, null);
+        FlagsBoxView? view = View;
+        TextBox? valueTextBox = view?.ValueTextBox;
+        if (valueTextBox is not null)
+            DataValidationErrors.SetError(valueTextBox, null);
+
         if (value is string valueString)
         {
-            if (Enum.TryParse(View!.Value.GetType(), valueString, out object? result))
+            if (view?.Value is not null && Enum.TryParse(view.Value.GetType(), valueString, out object? result))
             {
                 return result;
             }
@@ -118,7 +125,8 @@ public class FlagEnumToStringConverter : IValueConverter
             {
                 // Can't do this because the type is dynamic, so the notification will be stored in Value. This may actually be a bug with Avalonia, I'm not sure.
                 // return new BindingNotification(new InvalidCastException(), BindingErrorType.Error);
-                DataValidationErrors.SetError(View!.ValueTextBox, new InvalidCastException());
+                if (valueTextBox is not null)
+                    DataValidationErrors.SetError(valueTextBox, new InvalidCastException());
                 return BindingOperations.DoNothing;
 
             }

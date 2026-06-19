@@ -46,8 +46,7 @@ public class UndertalePathEditor : Control
 
         context.DrawGeometry(null, new Pen(pathBrush, thickness: 2), geometry);
 
-        TopLevel topLevel = TopLevel.GetTopLevel(this)!;
-        topLevel.RequestAnimationFrame(_ =>
+        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ =>
         {
             InvalidateMeasure();
             InvalidateVisual();

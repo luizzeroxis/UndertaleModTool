@@ -68,10 +68,17 @@
                     </l:EditableDataGrid.Columns>
                 </l:EditableDataGrid>
             </Grid>
-            
+
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock Text="{Binding TexturePreviewStatus}" VerticalAlignment="Center" />
+                <Button Grid.Column="1"
+                        Command="{Binding RenderTexturePreview}"
+                        IsVisible="{Binding !IsTexturePreviewRendered}">Render preview</Button>
+            </Grid>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
                           MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
-                <l:SKImageViewer Image="{Binding TexturesSelected.Texture}" />
+                <l:SKImageViewer Image="{Binding TexturesSelected.Texture}"
+                                 IsRenderingEnabled="{Binding IsTexturePreviewRendered}" />
             </ScrollViewer>
 
             <StackPanel Orientation="Horizontal">
@@ -95,9 +102,16 @@
             </Grid>
 
             <StackPanel IsVisible="{Binding CollisionMasksSelected, Converter={x:Static ObjectConverters.IsNotNull}}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Text="{Binding CollisionMaskPreviewStatus}" VerticalAlignment="Center" />
+                    <Button Grid.Column="1"
+                            Command="{Binding RenderCollisionMaskPreview}"
+                            IsVisible="{Binding !IsCollisionMaskPreviewRendered}">Render preview</Button>
+                </Grid>
                 <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
                               MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
-                    <l:SKImageViewer Image="{Binding CollisionMasksSelected}" />
+                    <l:SKImageViewer Image="{Binding CollisionMasksSelected}"
+                                     IsRenderingEnabled="{Binding IsCollisionMaskPreviewRendered}" />
                 </ScrollViewer>
 
                 <StackPanel Orientation="Horizontal">

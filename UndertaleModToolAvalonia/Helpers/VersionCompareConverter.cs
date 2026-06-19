@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using System.Linq;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 
@@ -28,18 +27,19 @@ public class VersionCompareConverter : IValueConverter
 
             string operation = "GE";
 
-            if (compareString.StartsWith("GE"))
+            if (compareString.StartsWith("GE", StringComparison.Ordinal))
             {
                 operation = "GE";
                 compareString = compareString[("GE".Length)..];
             }
-            else if (compareString.StartsWith("L"))
+            else if (compareString.StartsWith("L", StringComparison.Ordinal))
             {
                 operation = "L";
                 compareString = compareString[("L".Length)..];
             }
 
-            uint[] versionCompareList = [.. compareString.Split('.').Select(x => uint.Parse(x))];
+            if (!TryParseVersion(compareString, out uint[] versionCompareList))
+                return VersionCompareError(compareString);
 
             for (int i = 0; i < versionCompareList.Length; i++)
             {
@@ -56,11 +56,41 @@ public class VersionCompareConverter : IValueConverter
                 return false;
         }
 
-        return new BindingNotification(new InvalidOperationException(), BindingErrorType.Error);
+        return VersionCompareError(parameter);
     }
 
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        throw new NotImplementedException();
+        return BindingOperations.DoNothing;
+    }
+
+    private static bool TryParseVersion(string compareString, out uint[] versionCompareList)
+    {
+        versionCompareList = [];
+
+        string[] parts = compareString.Split('.');
+        if (parts.Length == 0 || parts.Length > 4)
+            return false;
+
+        versionCompareList = new uint[parts.Length];
+        for (int i = 0; i < parts.Length; i++)
+        {
+            if (!uint.TryParse(parts[i], NumberStyles.None, CultureInfo.InvariantCulture, out uint versionPart))
+            {
+                versionCompareList = [];
+                return false;
+            }
+
+            versionCompareList[i] = versionPart;
+        }
+
+        return true;
+    }
+
+    private static BindingNotification VersionCompareError(object? parameter)
+    {
+        return new BindingNotification(
+            new InvalidOperationException($"Invalid version comparison parameter: {parameter ?? "<null>"}"),
+            BindingErrorType.Error);
     }
 }

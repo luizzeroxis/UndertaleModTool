@@ -4,6 +4,16 @@ namespace UndertaleModToolAvalonia.Tests;
 
 public class ObservableCollectionViewTest
 {
+    private sealed class ManualNotifyList<T> : System.Collections.Generic.List<T>, System.Collections.Specialized.INotifyCollectionChanged
+    {
+        public event System.Collections.Specialized.NotifyCollectionChangedEventHandler? CollectionChanged;
+
+        public void Raise(System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            CollectionChanged?.Invoke(this, e);
+        }
+    }
+
     [Fact]
     public void Test_ObservableCollectionView()
     {
@@ -128,5 +138,34 @@ public class ObservableCollectionViewTest
 
         view.SetFilter(x => true);
         Assert.Equal(output, ["A", "B", "C", "D", "E"]);
+    }
+
+    [Fact]
+    public void AddNotificationWithoutIndexFallsBackToReset()
+    {
+        ManualNotifyList<string> input = ["a"];
+        var view = new ObservableCollectionView<string, string>(input);
+
+        input.Add("b");
+        input.Raise(new System.Collections.Specialized.NotifyCollectionChangedEventArgs(
+            System.Collections.Specialized.NotifyCollectionChangedAction.Add,
+            "b"));
+
+        Assert.Equal(["a", "b"], view.Output);
+    }
+
+    [Fact]
+    public void ReplaceNotificationWithoutIndexFallsBackToReset()
+    {
+        ManualNotifyList<string> input = ["a"];
+        var view = new ObservableCollectionView<string, string>(input);
+
+        input[0] = "b";
+        input.Raise(new System.Collections.Specialized.NotifyCollectionChangedEventArgs(
+            System.Collections.Specialized.NotifyCollectionChangedAction.Replace,
+            "b",
+            "a"));
+
+        Assert.Equal(["b"], view.Output);
     }
 }

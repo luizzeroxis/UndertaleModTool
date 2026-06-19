@@ -33,6 +33,9 @@
                           IsChecked="{Binding MainVM.Settings.EnableSyntaxHighlighting}"/>
                 <CheckBox Content="Automatically compile and decompile code on lost focus"
                           IsChecked="{Binding MainVM.Settings.AutomaticallyCompileAndDecompileCodeOnLostFocus}"/>
+                <CheckBox Content="Automatically render image previews"
+                          ToolTip.Tip="If disabled, heavier image previews render only after pressing Render preview."
+                          IsChecked="{Binding MainVM.Settings.AutomaticallyRenderImagePreviews}"/>
 
                 <CheckBox Content="Enable room grid by default"
                           IsChecked="{Binding MainVM.Settings.EnableRoomGridByDefault}"/>

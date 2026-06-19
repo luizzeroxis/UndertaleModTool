@@ -40,6 +40,15 @@
 
                 <Label>Audio group</Label>
                 <l:UndertaleResourceReferenceView Reference="{Binding Sound.AudioGroup}" ReferenceType="undertalem:UndertaleAudioGroup" />
+
+                <Label>Audio routing</Label>
+                <TextBlock Text="{Binding AudioRoutingSummary}" TextWrapping="Wrap" />
+
+                <Label>Audio data</Label>
+                <TextBlock Text="{Binding AudioDataSummary}" TextWrapping="Wrap" />
+
+                <Label>Playback</Label>
+                <TextBlock Text="{Binding PlaybackSummary}" TextWrapping="Wrap" />
             </Grid>
 
             <StackPanel IsVisible="{Binding IsBuiltinAudioGroup}">

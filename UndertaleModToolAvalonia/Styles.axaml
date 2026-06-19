@@ -92,6 +92,15 @@
     </Style>
     <Style Selector="ScrollBar">
         <Setter Property="AllowAutoHide" Value="False"/>
+        <Setter Property="Background" Value="Transparent"/>
+        <Setter Property="MinWidth" Value="12"/>
+        <Setter Property="MinHeight" Value="12"/>
+    </Style>
+    <Style Selector="ScrollBar:vertical">
+        <Setter Property="Width" Value="12"/>
+    </Style>
+    <Style Selector="ScrollBar:horizontal">
+        <Setter Property="Height" Value="12"/>
     </Style>
     <Style Selector=":is(Control)">
         <Setter Property="ScrollViewer.AllowAutoHide" Value="False"/>

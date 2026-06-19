@@ -57,7 +57,9 @@ public partial class UndertaleResourceReferenceView : UserControl
 
         if (change.Property == ReferenceTypeProperty)
         {
-            this.Find<TextBox>("TextBox")!.PlaceholderText = "(" + ReferenceType.Name + " reference)";
+            TextBox? textBox = this.Find<TextBox>("TextBox");
+            if (textBox is not null)
+                textBox.PlaceholderText = "(" + ReferenceType.Name + " reference)";
         }
     }
 
@@ -87,19 +89,24 @@ public partial class UndertaleResourceReferenceView : UserControl
 
     public void Open()
     {
-        MainViewModel mainView = (this.FindLogicalAncestorOfType<MainView>()!.DataContext as MainViewModel)!;
-        mainView.TabOpen(Reference);
+        if (TryGetMainViewModel() is { } mainView)
+            mainView.TabOpen(Reference);
     }
 
     public void OpenInNewTab()
     {
-        MainViewModel mainView = (this.FindLogicalAncestorOfType<MainView>()!.DataContext as MainViewModel)!;
-        mainView.TabOpen(Reference, inNewTab: true);
+        if (TryGetMainViewModel() is { } mainView)
+            mainView.TabOpen(Reference, inNewTab: true);
     }
 
     public void Remove()
     {
         Reference = null;
+    }
+
+    private MainViewModel? TryGetMainViewModel()
+    {
+        return this.FindLogicalAncestorOfType<MainView>()?.DataContext as MainViewModel;
     }
 }
 

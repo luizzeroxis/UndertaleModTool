@@ -7,6 +7,10 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="UndertaleModToolAvalonia.UndertaleTexturePageItemView"
              x:DataType="l:UndertaleTexturePageItemViewModel">
+    <UserControl.Resources>
+        <l:ZoomConverter x:Key="ZoomConverter" />
+    </UserControl.Resources>
+
     <ScrollViewer>
         <StackPanel>
             <Grid l:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*" Classes="PaddedProperties">
@@ -37,16 +41,41 @@
             </Grid>
 
             <StackPanel Orientation="Horizontal">
-                <Button Command="{Binding SaveImage}">Save image</Button>
+                <Button Command="{Binding ImportImage}"
+                        IsEnabled="{Binding TexturePageItem.TexturePage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    Import PNG
+                </Button>
+                <Button Command="{Binding ExportImage}"
+                        IsEnabled="{Binding TexturePageItem.TexturePage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    Export PNG
+                </Button>
+                <Button Command="{Binding OpenTexturePage}"
+                        IsEnabled="{Binding TexturePageItem.TexturePage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    Open texture page
+                </Button>
+                <Button Command="{Binding OpenTexturePageInNewTab}"
+                        IsEnabled="{Binding TexturePageItem.TexturePage, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    Open texture page in new tab
+                </Button>
+                <TextBlock Text="Zoom" VerticalAlignment="Center" Margin="12,0,4,0" />
+                <Button Command="{Binding ZoomOut}">-</Button>
+                <TextBox Text="{Binding PreviewZoom, Converter={StaticResource ZoomConverter}}" Width="70" />
+                <Button Command="{Binding ZoomIn}">+</Button>
+                <Button Command="{Binding ZoomReset}">100%</Button>
             </StackPanel>
 
+            <Grid ColumnDefinitions="*,Auto" Classes="PaddedProperties">
+                <TextBlock Text="{Binding PreviewStatus}" VerticalAlignment="Center" />
+                <Button Grid.Column="1"
+                        Command="{Binding RenderPreview}"
+                        IsVisible="{Binding !IsPreviewRendered}">Render preview</Button>
+            </Grid>
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
                           MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
-                <l:SKImageViewer Image="{Binding TexturePageItem}" />
+                <l:SKImageViewer Image="{Binding TexturePageItem}"
+                                 Zoom="{Binding PreviewZoom, Mode=TwoWay}"
+                                 IsRenderingEnabled="{Binding IsPreviewRendered}" />
             </ScrollViewer>
-
-            <!-- TODO: Import/Export -->
-            <!-- TODO: Show item in texture -->
         </StackPanel>
     </ScrollViewer>
 </UserControl>

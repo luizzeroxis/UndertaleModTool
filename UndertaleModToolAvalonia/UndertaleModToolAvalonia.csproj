@@ -20,6 +20,14 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Content Include="..\UndertaleModTool\Scripts\**">
+            <Link>Scripts\%(RecursiveDir)%(Filename)%(Extension)</Link>
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+        </Content>
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Avalonia" Version="12.0.3" />
         <PackageReference Include="Avalonia.AvaloniaEdit" Version="12.0.0" />
         <PackageReference Include="Avalonia.Controls.ColorPicker" Version="12.0.3" />

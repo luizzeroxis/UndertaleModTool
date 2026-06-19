@@ -27,10 +27,18 @@
                 <l:UndertaleResourceReferenceView Reference="{Binding GameObject.Sprite}" ReferenceType="undertalem:UndertaleSprite"/>
 
                 <Label>Image</Label>
-                <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
-                          MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
-                    <l:SKImageViewer Image="{Binding GameObject.Sprite.Textures[0].Texture}" />
-                </ScrollViewer>
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding PreviewStatus}" VerticalAlignment="Center" />
+                        <Button Command="{Binding RenderPreview}"
+                                IsVisible="{Binding !IsPreviewRendered}">Render preview</Button>
+                    </StackPanel>
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
+                                  MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
+                        <l:SKImageViewer Image="{Binding PreviewImage}"
+                                         IsRenderingEnabled="{Binding IsPreviewRendered}" />
+                    </ScrollViewer>
+                </StackPanel>
 
                 <Label>Visible</Label>
                 <CheckBox IsChecked="{Binding GameObject.Visible}"/>

@@ -2,6 +2,8 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Avalonia;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,11 +67,7 @@ public partial class SettingsFile
                 string xaml = File.ReadAllText(stylesPath);
                 Styles styles = AvaloniaRuntimeXamlLoader.Parse<Styles>(xaml);
 
-                if (App.CurrentCustomStyles is not null)
-                    App.Current!.Styles.Remove(App.CurrentCustomStyles);
-
-                App.CurrentCustomStyles = styles;
-                App.Current!.Styles.Add(styles);
+                TryApplyCustomStyles(styles, App.Current);
             }
             catch (Exception e)
             {
@@ -80,23 +78,54 @@ public partial class SettingsFile
         return settings;
     }
 
+    internal static bool TryApplyCustomStyles(Styles styles, Application? app)
+    {
+        if (app is null)
+            return false;
+
+        if (App.CurrentCustomStyles is not null)
+            app.Styles.Remove(App.CurrentCustomStyles);
+
+        App.CurrentCustomStyles = styles;
+        app.Styles.Add(styles);
+        return true;
+    }
+
     public async void Save()
     {
+        await SaveTask();
+    }
+
+    public Task<bool> SaveTask()
+    {
         string roamingAppData = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "UndertaleModToolAvalonia");
-        Directory.CreateDirectory(roamingAppData);
+        return SaveTask(Path.Join(roamingAppData, "Settings.json"));
+    }
 
-        string json = JsonSerializer.Serialize(this, new JsonSerializerOptions()
-        {
-            WriteIndented = true,
-        });
-
+    internal async Task<bool> SaveTask(string settingsPath)
+    {
         try
         {
-            File.WriteAllText(Path.Join(roamingAppData, "Settings.json"), json);
+            string? directory = Path.GetDirectoryName(settingsPath);
+            if (!string.IsNullOrWhiteSpace(directory))
+                Directory.CreateDirectory(directory);
+
+            string json = JsonSerializer.Serialize(this, new JsonSerializerOptions()
+            {
+                WriteIndented = true,
+            });
+
+            File.WriteAllText(settingsPath, json);
+            return true;
         }
         catch (Exception e)
         {
-            await MainVM.View!.MessageDialog($"Error when saving settings file: {e.Message}");
+            string message = $"Error when saving settings file: {e.Message}";
+            if (MainVM?.View is { } view)
+                await view.MessageDialog(message);
+            else
+                MainVM?.LazyErrorMessages.Add(message);
+            return false;
         }
     }
 
@@ -121,7 +150,7 @@ public partial class SettingsFile
                 ThemeValue.SystemDefault => ThemeVariant.Default,
                 ThemeValue.Light => ThemeVariant.Light,
                 ThemeValue.Dark => ThemeVariant.Dark,
-                _ => throw new NotImplementedException(),
+                _ => ThemeVariant.Default,
             };
         }
     }
@@ -131,6 +160,9 @@ public partial class SettingsFile
     public bool OpenNewResourceAfterCreatingIt { get; set; } = false;
     public bool EnableSyntaxHighlighting { get; set; } = true;
     public bool AutomaticallyCompileAndDecompileCodeOnLostFocus { get; set; } = true;
+
+    [Notify]
+    private bool _AutomaticallyRenderImagePreviews = true;
 
     public bool EnableRoomGridByDefault { get; set; } = false;
     public uint DefaultRoomGridWidth { get; set; } = 20;

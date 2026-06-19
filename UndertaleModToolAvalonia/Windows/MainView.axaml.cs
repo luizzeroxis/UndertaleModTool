@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -95,7 +96,7 @@ public partial class MainView : UserControl, IView
 
     public async Task OpenSettingsDialog(IServiceProvider serviceProvider)
     {
-        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException();
+        Window window = this.RequireWindow(nameof(OpenSettingsDialog));
         await new SettingsWindow()
         {
             DataContext = new SettingsViewModel(serviceProvider),
@@ -112,7 +113,7 @@ public partial class MainView : UserControl, IView
 
     public void OpenProjectAssets(IServiceProvider serviceProvider)
     {
-        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException();
+        Window window = this.RequireWindow(nameof(OpenProjectAssets));
 
         if (projectAssetsWindow is not null)
         {
@@ -187,7 +188,9 @@ public partial class MainView : UserControl, IView
 
         if (foundIndex is IndexPath index)
         {
-            var source = (MainTreeDataGrid.Source as HierarchicalTreeDataGridSource<MainViewModel.TreeDataGridItem>)!;
+            if (MainTreeDataGrid.Source is not HierarchicalTreeDataGridSource<MainViewModel.TreeDataGridItem> source)
+                return;
+
             source.Expand(index);
         }
     }
@@ -201,13 +204,23 @@ public partial class MainView : UserControl, IView
 
         if (foundIndex is IndexPath index)
         {
-            var source = (MainTreeDataGrid.Source as HierarchicalTreeDataGridSource<MainViewModel.TreeDataGridItem>)!;
+            if (MainTreeDataGrid.Source is not HierarchicalTreeDataGridSource<MainViewModel.TreeDataGridItem> source ||
+                MainTreeDataGrid.RowSelection is null ||
+                MainTreeDataGrid.Rows is null)
+                return;
+
             source.Expand(index);
 
-            MainTreeDataGrid.RowSelection!.SelectedIndex = index;
+            MainTreeDataGrid.RowSelection.SelectedIndex = index;
 
-            int rowIndex = MainTreeDataGrid.Rows!.ModelIndexToRowIndex(index);
-            MainTreeDataGrid.RowsPresenter!.BringIntoView(rowIndex);
+            int rowIndex = MainTreeDataGrid.Rows.ModelIndexToRowIndex(index);
+            bool isVisible = MainTreeDataGrid.RowsPresenter?
+                .GetVisualDescendants()
+                .OfType<TreeDataGridRow>()
+                .Any(row => row.RowIndex == rowIndex) ?? false;
+
+            if (!isVisible && MainTreeDataGrid.RowsPresenter is { } rowsPresenter)
+                rowsPresenter.BringIntoView(rowIndex);
         }
     }
 
@@ -262,7 +275,7 @@ public partial class MainView : UserControl, IView
             if (item is not null && vm.Data is not null)
             {
                 // This could probably be better
-                IList list = (item.Value switch
+                IList? list = item.Value switch
                 {
                     "AudioGroups" => vm.Data.AudioGroups as IList,
                     "Sounds" => vm.Data.Sounds as IList,
@@ -290,9 +303,10 @@ public partial class MainView : UserControl, IView
                     "ParticleSystems" => vm.Data.ParticleSystems as IList,
                     "ParticleSystemEmitters" => vm.Data.ParticleSystemEmitters as IList,
                     _ => null,
-                })!;
+                };
 
-                vm.DataItemAdd(list);
+                if (list is not null)
+                    vm.DataItemAdd(list);
             }
         }
     }
@@ -337,8 +351,8 @@ public partial class MainView : UserControl, IView
 
                 if (name is not null)
                 {
-                    TopLevel topLevel = TopLevel.GetTopLevel(this)!;
-                    await topLevel.Clipboard!.SetTextAsync(name);
+                    if (TopLevel.GetTopLevel(this)?.Clipboard is { } clipboard)
+                        await clipboard.SetTextAsync(name);
                 }
             }
         }
@@ -351,7 +365,9 @@ public partial class MainView : UserControl, IView
             MainViewModel.TreeDataGridItem? item = GetItemFromTreeDataGridControl(e.Source);
             if (item is not null && vm.Data is not null && vm.View is not null)
             {
-                UndertaleResource resource = (item.Value as UndertaleResource)!;
+                if (item.Value is not UndertaleResource resource)
+                    return;
+
                 IList list = vm.Data[resource.GetType()];
                 int oldIndex = list.IndexOf(resource);
 
@@ -377,15 +393,15 @@ public partial class MainView : UserControl, IView
         }
     }
 
-    public async void ContextMenu_Remove_Click(object? sender, RoutedEventArgs e)
+    public void ContextMenu_Remove_Click(object? sender, RoutedEventArgs e)
     {
         if (DataContext is MainViewModel vm)
         {
             MainViewModel.TreeDataGridItem? item = GetItemFromTreeDataGridControl(e.Source);
             if (item is not null && vm.Data is not null)
             {
-                UndertaleResource resource = (item.Value as UndertaleResource)!;
-                vm.DataItemRemove(resource);
+                if (item.Value is UndertaleResource resource)
+                    vm.DataItemRemove(resource);
             }
         }
     }
@@ -471,8 +487,7 @@ public partial class MainView : UserControl, IView
             if (e.Key == Key.Enter && !e.KeyModifiers.HasFlag(KeyModifiers.Shift))
             {
                 e.Handled = true;
-                object? result = await vm.Scripting.RunScript(vm.CommandTextBoxText);
-                vm.CommandTextBoxText = result?.ToString() ?? "";
+                await vm.RunCommandTextAsync();
             }
     }
 }

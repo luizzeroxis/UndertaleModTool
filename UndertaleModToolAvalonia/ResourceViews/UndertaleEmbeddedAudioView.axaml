@@ -8,17 +8,20 @@
              x:DataType="l:UndertaleEmbeddedAudioViewModel">
     <ScrollViewer>
         <StackPanel Classes="PaddedProperties">
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="WAV data, length: " />
-                <TextBlock Text="{Binding EmbeddedAudio.Data.Length}" />
-            </StackPanel>
+            <Grid l:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,3*">
+                <Label>Format</Label>
+                <TextBlock Text="{Binding AudioFormat}" TextWrapping="Wrap" />
+
+                <Label>Size</Label>
+                <TextBlock Text="{Binding AudioSize}" TextWrapping="Wrap" />
+
+                <Label>Linked sounds</Label>
+                <TextBlock Text="{Binding LinkedSoundsSummary}" TextWrapping="Wrap" />
+            </Grid>
 
             <StackPanel Orientation="Horizontal">
                 <Button Command="{Binding ImportAudio}">Import audio</Button>
                 <Button Command="{Binding ExportAudio}">Export audio</Button>
-            </StackPanel>
-
-            <StackPanel Orientation="Horizontal">
                 <Button Command="{Binding PlayAudio}">Play audio</Button>
                 <Button Command="{Binding StopAudio}">Stop audio</Button>
             </StackPanel>

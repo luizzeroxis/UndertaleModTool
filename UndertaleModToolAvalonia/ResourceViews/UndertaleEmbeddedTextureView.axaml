@@ -8,6 +8,7 @@
              x:DataType="l:UndertaleEmbeddedTextureViewModel">
     <UserControl.Resources>
         <l:VersionCompareConverter x:Key="VersionCompareConverter" />
+        <l:ZoomConverter x:Key="ZoomConverter" />
     </UserControl.Resources>
 
     <ScrollViewer>
@@ -35,13 +36,44 @@
                 <Button Command="{Binding ImportImage}">Import image</Button>
                 <Button Command="{Binding ExportImage}">Export image</Button>
                 <Button Command="{Binding ExportImageAsPNG}">Export image as PNG</Button>
+                <TextBlock Text="Zoom" VerticalAlignment="Center" Margin="12,0,4,0" />
+                <Button Command="{Binding ZoomOut}">-</Button>
+                <TextBox Text="{Binding PreviewZoom, Converter={StaticResource ZoomConverter}}" Width="70" />
+                <Button Command="{Binding ZoomIn}">+</Button>
+                <Button Command="{Binding ZoomReset}">100%</Button>
             </StackPanel>
+
+            <Grid ColumnDefinitions="*,Auto,Auto" Classes="PaddedProperties">
+                <TextBlock Grid.Column="0"
+                           Text="{Binding SelectedTexturePageItemDescription}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center" />
+                <Button Grid.Column="1"
+                        Command="{Binding OpenSelectedTexturePageItem}"
+                        IsEnabled="{Binding SelectedTexturePageItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    Open selected item
+                </Button>
+                <Button Grid.Column="2"
+                        Command="{Binding OpenSelectedTexturePageItemInNewTab}"
+                        IsEnabled="{Binding SelectedTexturePageItem, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    Open in new tab
+                </Button>
+            </Grid>
             
-            <!-- TODO: Click on item to open -->
             <!-- TODO: Failed to load message -->
+            <Grid ColumnDefinitions="*,Auto" Classes="PaddedProperties">
+                <TextBlock Text="{Binding PreviewStatus}" VerticalAlignment="Center" />
+                <Button Grid.Column="1"
+                        Command="{Binding RenderPreview}"
+                        IsVisible="{Binding !IsPreviewRendered}">Render preview</Button>
+            </Grid>
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
                           MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
-                <l:SKImageViewer Image="{Binding EmbeddedTexture.TextureData.Image}" />
+                <l:SKImageViewer Image="{Binding EmbeddedTexture.TextureData.Image}"
+                                 TexturePageItems="{Binding TexturePageItems}"
+                                 SelectedTexturePageItem="{Binding SelectedTexturePageItem, Mode=TwoWay}"
+                                 Zoom="{Binding PreviewZoom, Mode=TwoWay}"
+                                 IsRenderingEnabled="{Binding IsPreviewRendered}" />
             </ScrollViewer>
         </StackPanel>
     </ScrollViewer>

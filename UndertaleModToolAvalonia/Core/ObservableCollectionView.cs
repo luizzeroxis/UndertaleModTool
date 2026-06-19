@@ -161,7 +161,11 @@ public class ObservableCollectionView<TInput, TOutput>
 
     private void OnInputAdd(NotifyCollectionChangedEventArgs e)
     {
-        TInput item = (TInput)e.NewItems![0]!;
+        if (!TryGetNewItem(e, out TInput item) || e.NewStartingIndex < 0)
+        {
+            OnInputReset();
+            return;
+        }
 
         // Find where in output to insert
         int i = outputIndexToInputIndexMap.BinarySearch(e.NewStartingIndex);
@@ -186,6 +190,12 @@ public class ObservableCollectionView<TInput, TOutput>
 
     private void OnInputRemove(NotifyCollectionChangedEventArgs e)
     {
+        if (e.OldStartingIndex < 0)
+        {
+            OnInputReset();
+            return;
+        }
+
         // Find where in output to remove
         int i = outputIndexToInputIndexMap.BinarySearch(e.OldStartingIndex);
         if (i >= 0)
@@ -209,7 +219,12 @@ public class ObservableCollectionView<TInput, TOutput>
 
     private void OnInputReplace(NotifyCollectionChangedEventArgs e)
     {
-        TInput item = (TInput)e.NewItems![0]!;
+        if (!TryGetNewItem(e, out TInput item) || e.OldStartingIndex < 0)
+        {
+            OnInputReset();
+            return;
+        }
+
         bool passes = DoesPassFilter(item);
 
         // Find where item is in output
@@ -242,6 +257,12 @@ public class ObservableCollectionView<TInput, TOutput>
 
     private void OnInputMove(NotifyCollectionChangedEventArgs e)
     {
+        if (!TryGetNewItem(e, out _) || e.OldStartingIndex < 0 || e.NewStartingIndex < 0)
+        {
+            OnInputReset();
+            return;
+        }
+
         // TODO: Actually call Move().
         OnInputRemove(e);
         OnInputAdd(e);
@@ -316,6 +337,31 @@ public class ObservableCollectionView<TInput, TOutput>
     }
 
     private bool DoesPassFilter(TInput item) => filterPredicate is null || filterPredicate(item);
+
+    private static bool TryGetNewItem(NotifyCollectionChangedEventArgs e, out TInput item)
+    {
+        if (e.NewItems is not { Count: > 0 } newItems)
+        {
+            item = default!;
+            return false;
+        }
+
+        object? rawItem = newItems[0];
+        if (rawItem is null)
+        {
+            item = default!;
+            return default(TInput) is null;
+        }
+
+        if (rawItem is TInput typedItem)
+        {
+            item = typedItem;
+            return true;
+        }
+
+        item = default!;
+        return false;
+    }
 
     private TOutput TransformItem(TInput item)
     {

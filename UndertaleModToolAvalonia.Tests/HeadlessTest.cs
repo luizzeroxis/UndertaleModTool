@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Threading.Tasks;
 using Avalonia.Headless.XUnit;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,17 +16,23 @@ public class HeadlessTest
         {
             DataContext = vm,
         };
-        mainWindow.Show();
 
-        await vm.NewData();
+        try
+        {
+            mainWindow.Show();
 
-        Assert.NotNull(vm.Data);
+            await vm.NewData();
 
-        using MemoryStream stream = new();
+            Assert.NotNull(vm.Data);
 
-        await vm.SaveData(stream);
-        Debug.WriteLine(stream.Length);
+            using MemoryStream stream = new();
 
-        Assert.Equal(2200, stream.Length);
+            await vm.SaveData(stream);
+            Assert.Equal(2200, stream.Length);
+        }
+        finally
+        {
+            mainWindow.Close();
+        }
     }
 }

@@ -74,8 +74,11 @@ public partial class UndertaleCodeViewModel : IUndertaleResourceViewModel
             }
             catch (Underanalyzer.Decompiler.DecompilerException e)
             {
-                loaderWindow?.EnsureShown();
-                await MainVM.View!.MessageDialog(e.ToString(), title: "GML decompilation error");
+                if (MainVM.View is { } view)
+                {
+                    loaderWindow?.EnsureShown();
+                    await view.MessageDialog(e.ToString(), title: "GML decompilation error");
+                }
                 return false;
             }
         }
@@ -100,12 +103,15 @@ public partial class UndertaleCodeViewModel : IUndertaleResourceViewModel
 
         if (!result.Successful)
         {
-            loaderWindow?.EnsureShown();
-            MessageWindow.Result undoChanges = await MainVM.View!.MessageDialog(result.PrintAllErrors(codeEntryNames: false)
-                + "\n\nUndo changes?", title: "GML compilation error", MessageWindow.Buttons.YesNo);
-            if (undoChanges == MessageWindow.Result.Yes)
+            if (MainVM.View is { } view)
             {
-                await DecompileToGML();
+                loaderWindow?.EnsureShown();
+                MessageWindow.Result undoChanges = await view.MessageDialog(result.PrintAllErrors(codeEntryNames: false)
+                    + "\n\nUndo changes?", title: "GML compilation error", MessageWindow.Buttons.YesNo);
+                if (undoChanges == MessageWindow.Result.Yes)
+                {
+                    await DecompileToGML();
+                }
             }
             return false;
         }
@@ -133,8 +139,11 @@ public partial class UndertaleCodeViewModel : IUndertaleResourceViewModel
         }
         catch (Exception e)
         {
-            loaderWindow?.EnsureShown();
-            await MainVM.View!.MessageDialog(e.ToString(), title: "ASM decompilation error");
+            if (MainVM.View is { } view)
+            {
+                loaderWindow?.EnsureShown();
+                await view.MessageDialog(e.ToString(), title: "ASM decompilation error");
+            }
             return false;
         }
 
@@ -151,11 +160,14 @@ public partial class UndertaleCodeViewModel : IUndertaleResourceViewModel
         if (MainVM.Project is not null && MainVM.Project.TryGetCodeSource(Code, out _))
         {
             // The user really shouldn't be editing disassembly - warn them about this in detail
-            loaderWindow?.EnsureShown();
-            await MainVM.View!.MessageDialog("Editing disassembly while in an open project (even through scripts) can cause " +
-                "desyncs with source code in the project.\n\n" +
-                "The source code will not change unless you directly modify it, " +
-                "or if you remove the code asset from the project entirely.");
+            if (MainVM.View is { } view)
+            {
+                loaderWindow?.EnsureShown();
+                await view.MessageDialog("Editing disassembly while in an open project (even through scripts) can cause " +
+                    "desyncs with source code in the project.\n\n" +
+                    "The source code will not change unless you directly modify it, " +
+                    "or if you remove the code asset from the project entirely.");
+            }
         }
 
         try
@@ -166,12 +178,15 @@ public partial class UndertaleCodeViewModel : IUndertaleResourceViewModel
         }
         catch (Exception e)
         {
-            loaderWindow?.EnsureShown();
-            MessageWindow.Result undoChanges = await MainVM.View!.MessageDialog(e.ToString()
-                + "\n\nUndo changes?", title: "ASM compilation error", MessageWindow.Buttons.YesNo);
-            if (undoChanges == MessageWindow.Result.Yes)
+            if (MainVM.View is { } view)
             {
-                await DecompileToASM();
+                loaderWindow?.EnsureShown();
+                MessageWindow.Result undoChanges = await view.MessageDialog(e.ToString()
+                    + "\n\nUndo changes?", title: "ASM compilation error", MessageWindow.Buttons.YesNo);
+                if (undoChanges == MessageWindow.Result.Yes)
+                {
+                    await DecompileToASM();
+                }
             }
 
             return false;
@@ -187,18 +202,21 @@ public partial class UndertaleCodeViewModel : IUndertaleResourceViewModel
 
     void CodeProcessStart()
     {
-        loaderWindow = MainVM.View!.LoaderOpen();
+        if (MainVM.View is { } view)
+        {
+            loaderWindow = view.LoaderOpen();
+            lastFocusedElement = view.GetFocusedElement();
+        }
 
         IsCodeProcessing = true;
 
         View?.SaveCaretOffsets();
-        lastFocusedElement = MainVM.View.GetFocusedElement();
         MainVM.IsEnabled = false;
     }
 
     void CodeProcessEnd()
     {
-        loaderWindow!.Close();
+        loaderWindow?.Close();
         loaderWindow = null;
 
         IsCodeProcessing = false;

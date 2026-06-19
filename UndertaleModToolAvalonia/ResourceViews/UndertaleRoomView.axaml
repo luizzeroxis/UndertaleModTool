@@ -687,6 +687,9 @@
             <Grid Grid.Row="0" ColumnDefinitions="1*,Auto">
                 <StackPanel Grid.Column="0" Orientation="Horizontal">
                     <Button Command="{Binding SaveAsImage}">Save as image</Button>
+                    <Button Command="{Binding RenderPreview}"
+                            IsVisible="{Binding !IsPreviewRendered}">Render preview</Button>
+                    <TextBlock Text="{Binding PreviewStatus}" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding StatusText}" VerticalAlignment="Center" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
@@ -700,7 +703,7 @@
             </Grid>
             <!-- View -->
             <Panel Grid.Row="1">
-                <l:UndertaleRoomEditor />
+                <l:UndertaleRoomEditor IsRenderingEnabled="{Binding IsPreviewRendered}" />
             </Panel>
         </Grid>
     </Grid>

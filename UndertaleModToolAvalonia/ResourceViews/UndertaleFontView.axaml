@@ -79,9 +79,16 @@
                 <TextBox Text="{Binding Font.LineHeight}" />
             </Grid>
 
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding PreviewStatus}" VerticalAlignment="Center" />
+                <Button Command="{Binding RenderPreview}"
+                        IsVisible="{Binding !IsPreviewRendered}">Render preview</Button>
+            </StackPanel>
+
             <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
                           MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
-                <l:SKImageViewer Image="{Binding Font.Texture}" />
+                <l:SKImageViewer Image="{Binding Font.Texture}"
+                                 IsRenderingEnabled="{Binding IsPreviewRendered}" />
             </ScrollViewer>
 
             <!-- TODO: Click and edit glyphs -->

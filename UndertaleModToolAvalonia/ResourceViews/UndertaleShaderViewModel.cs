@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
 using Microsoft.Extensions.DependencyInjection;
 using UndertaleModLib;
@@ -35,20 +36,61 @@ public partial class UndertaleShaderViewModel : IUndertaleResourceViewModel
             "Cg_PSVita_PixelData" => Shader.Cg_PSVita_PixelData,
             "Cg_PS3_VertexData" => Shader.Cg_PS3_VertexData,
             "Cg_PS3_PixelData" => Shader.Cg_PS3_PixelData,
-            _ => throw new NotImplementedException(),
+            _ => null,
         };
+    }
+
+    bool SetRawShaderDataFromString(string parameter, UndertaleShader.UndertaleRawShaderData rawShaderData)
+    {
+        switch (parameter)
+        {
+            case "HLSL11_VertexData":
+                Shader.HLSL11_VertexData = rawShaderData;
+                return true;
+            case "HLSL11_PixelData":
+                Shader.HLSL11_PixelData = rawShaderData;
+                return true;
+            case "PSSL_VertexData":
+                Shader.PSSL_VertexData = rawShaderData;
+                return true;
+            case "PSSL_PixelData":
+                Shader.PSSL_PixelData = rawShaderData;
+                return true;
+            case "Cg_PSVita_VertexData":
+                Shader.Cg_PSVita_VertexData = rawShaderData;
+                return true;
+            case "Cg_PSVita_PixelData":
+                Shader.Cg_PSVita_PixelData = rawShaderData;
+                return true;
+            case "Cg_PS3_VertexData":
+                Shader.Cg_PS3_VertexData = rawShaderData;
+                return true;
+            case "Cg_PS3_PixelData":
+                Shader.Cg_PS3_PixelData = rawShaderData;
+                return true;
+            default:
+                return false;
+        }
     }
 
     public async void ImportRawShaderData(string parameter)
     {
-        IReadOnlyList<IStorageFile> files = await MainVM.View!.OpenFileDialog(new FilePickerOpenOptions
+        await ImportRawShaderDataTask(parameter);
+    }
+
+    public async Task<bool> ImportRawShaderDataTask(string parameter)
+    {
+        if (MainVM.View is not { } view)
+            return false;
+
+        IReadOnlyList<IStorageFile> files = await view.OpenFileDialog(new FilePickerOpenOptions
         {
             Title = "Import shader",
             FileTypeFilter = FilePickerFileTypes.BIN,
         });
 
         if (files.Count != 1)
-            return;
+            return false;
 
         using Stream stream = await files[0].OpenReadAsync();
         byte[] bytes = new byte[stream.Length];
@@ -60,33 +102,34 @@ public partial class UndertaleShaderViewModel : IUndertaleResourceViewModel
         {
             rawShaderData = new UndertaleShader.UndertaleRawShaderData();
 
-            Action setRawShaderData = parameter switch
+            if (!SetRawShaderDataFromString(parameter, rawShaderData))
             {
-                "HLSL11_VertexData" => () => Shader.HLSL11_VertexData = rawShaderData,
-                "HLSL11_PixelData" => () => Shader.HLSL11_PixelData = rawShaderData,
-                "PSSL_VertexData" => () => Shader.PSSL_VertexData = rawShaderData,
-                "PSSL_PixelData" => () => Shader.PSSL_PixelData = rawShaderData,
-                "Cg_PSVita_VertexData" => () => Shader.Cg_PSVita_VertexData = rawShaderData,
-                "Cg_PSVita_PixelData" => () => Shader.Cg_PSVita_PixelData = rawShaderData,
-                "Cg_PS3_VertexData" => () => Shader.Cg_PS3_VertexData = rawShaderData,
-                "Cg_PS3_PixelData" => () => Shader.Cg_PS3_PixelData = rawShaderData,
-                _ => throw new NotImplementedException(),
-            };
-            setRawShaderData();
+                await view.MessageDialog($"Unknown shader data target: {parameter}", title: "Import shader");
+                return false;
+            }
         }
 
         rawShaderData.IsNull = false;
         rawShaderData.Data = bytes;
+        return true;
     }
 
     public async void ExportRawShaderData(string parameter)
     {
+        await ExportRawShaderDataTask(parameter);
+    }
+
+    public async Task<bool> ExportRawShaderDataTask(string parameter)
+    {
         UndertaleShader.UndertaleRawShaderData? rawShaderData = GetRawShaderDataFromString(parameter);
 
         if (rawShaderData is null)
-            return;
+            return false;
 
-        IStorageFile? file = await MainVM.View!.SaveFileDialog(new FilePickerSaveOptions()
+        if (MainVM.View is not { } view)
+            return false;
+
+        IStorageFile? file = await view.SaveFileDialog(new FilePickerSaveOptions()
         {
             Title = "Export shader",
             FileTypeChoices = FilePickerFileTypes.BIN,
@@ -95,10 +138,11 @@ public partial class UndertaleShaderViewModel : IUndertaleResourceViewModel
         });
 
         if (file is null)
-            return;
+            return false;
 
         using Stream stream = await file.OpenWriteAsync();
 
         stream.Write(rawShaderData.Data);
+        return true;
     }
 }

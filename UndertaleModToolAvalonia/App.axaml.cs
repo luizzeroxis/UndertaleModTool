@@ -11,6 +11,7 @@ public partial class App : Application
 {
     public static IServiceProvider Services = null!;
     public static IStyle? CurrentCustomStyles = null;
+    private static bool servicesDisposed;
 
     public override void Initialize()
     {
@@ -24,6 +25,7 @@ public partial class App : Application
         collection.AddSingleton<MainViewModel>();
 
         Services = collection.BuildServiceProvider();
+        servicesDisposed = false;
 
         MainViewModel vm = Services.GetRequiredService<MainViewModel>();
         vm.Initialize();
@@ -34,8 +36,21 @@ public partial class App : Application
             {
                 DataContext = vm,
             };
+
+            desktop.Exit += (_, _) => DisposeServices();
         }
 
         base.OnFrameworkInitializationCompleted();
+    }
+
+    private static void DisposeServices()
+    {
+        if (servicesDisposed)
+            return;
+
+        servicesDisposed = true;
+
+        if (Services is IDisposable disposable)
+            disposable.Dispose();
     }
 }

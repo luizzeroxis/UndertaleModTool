@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -18,12 +19,18 @@ using UndertaleModLib.Decompiler;
 using UndertaleModLib.Models;
 using UndertaleModLib.Project;
 using UndertaleModLib.Scripting;
+using UndertaleModLib.Util;
 
 namespace UndertaleModToolAvalonia;
 
 public class Scripting
 {
     public readonly MainViewModel MainVM;
+
+    public bool ScriptExecutionSuccess { get; private set; } = true;
+    public string ScriptErrorMessage { get; private set; } = "";
+    public string ScriptErrorType { get; private set; } = "";
+    public bool FinishedMessageEnabled { get; private set; } = true;
 
     public Scripting(IServiceProvider serviceProvider)
     {
@@ -34,29 +41,11 @@ public class Scripting
     {
         try
         {
+            SetScriptSuccess();
+            FinishedMessageEnabled = true;
             MainVM.IsEnabled = false;
 
-            Script<object?> script = CSharpScript.Create(text, ScriptOptions.Default
-                .AddImports(
-                    "System",
-                    "System.Collections.Generic",
-                    "System.Linq",
-                    "System.IO",
-                    "System.Text",
-                    "System.Text.RegularExpressions",
-                    "System.Threading.Tasks",
-                    "UndertaleModLib",
-                    "UndertaleModLib.Compiler",
-                    "UndertaleModLib.Decompiler",
-                    "UndertaleModLib.Models",
-                    "UndertaleModLib.Scripting")
-                .AddReferences(
-                    "System.Core",
-                    "UndertaleModLib")
-                .WithFilePath(filePath)
-                .WithFileEncoding(Encoding.Default)
-                .WithEmitDebugInformation(true),
-                typeof(IScriptInterface));
+            Script<object?> script = CreateScript(text, filePath);
 
             ImmutableArray<Diagnostic> diagnostics = await Task.Run(() => script.Compile());
 
@@ -64,7 +53,8 @@ public class Scripting
             if (errors.Any())
             {
                 string message = String.Join("\n", errors);
-                await MainVM.View!.MessageDialog(message, title: "Script compilation error");
+                SetScriptError("CompilationErrorException", message);
+                await ShowScriptDialog(message, "Script compilation error");
 
                 return null;
             }
@@ -78,11 +68,15 @@ public class Scripting
             }
             catch (ScriptException e)
             {
-                await MainVM.View!.MessageDialog(e.Message, title: "Error from script");
+                string message = e.Message;
+                SetScriptError(e.GetType().Name, message);
+                await ShowScriptDialog(message, "Error from script");
             }
             catch (Exception e)
             {
-                await MainVM.View!.MessageDialog(e.ToString(), title: "Script execution error");
+                string message = ScriptingUtil.PrettifyException(in e);
+                SetScriptError(e.GetType().Name, message);
+                await ShowScriptDialog(message, "Script execution error");
             }
             finally
             {
@@ -96,24 +90,137 @@ public class Scripting
 
         return null;
     }
+
+    internal Script<object?> CreateScript(string text, string? filePath = null)
+    {
+        return CSharpScript.Create(text, ScriptingUtil.CreateDefaultScriptOptions()
+            .AddImports(
+                "System.Linq",
+                "System.Text",
+                "System.Threading.Tasks")
+            .WithFilePath(filePath)
+            .WithFileEncoding(filePath is null ? Encoding.Default : Encoding.UTF8)
+            .WithEmitDebugInformation(true),
+            typeof(IScriptInterface));
+    }
+
+    internal bool LintScript(string text, string? filePath, out string message)
+    {
+        ImmutableArray<Diagnostic> diagnostics = CreateScript(text, filePath).Compile();
+        Diagnostic[] errors = diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToArray();
+        if (errors.Length == 0)
+        {
+            SetScriptSuccess();
+            message = "";
+            return true;
+        }
+
+        message = String.Join("\n", errors.Select(error => error.ToString()));
+        SetScriptError("CompilationErrorException", message);
+        return false;
+    }
+
+    internal void SetScriptSuccess()
+    {
+        ScriptExecutionSuccess = true;
+        ScriptErrorMessage = "";
+        ScriptErrorType = "";
+    }
+
+    internal void SetScriptError(string type, string message)
+    {
+        ScriptExecutionSuccess = false;
+        ScriptErrorMessage = message;
+        ScriptErrorType = type;
+    }
+
+    internal void SetFinishedMessage(bool isEnabled)
+    {
+        FinishedMessageEnabled = isEnabled;
+    }
+
+    public bool ConsumeFinishedMessageEnabled()
+    {
+        bool result = FinishedMessageEnabled;
+        FinishedMessageEnabled = true;
+        return result;
+    }
+
+    private async Task ShowScriptDialog(string message, string title)
+    {
+        if (MainVM.View is not null)
+            await MainVM.View.MessageDialog(message, title: title);
+    }
+
+    internal static IReadOnlyList<FilePickerFileType> CreateFilePickerTypes(string? filter, IReadOnlyList<FilePickerFileType>? fallback = null)
+    {
+        if (String.IsNullOrWhiteSpace(filter))
+            return fallback ?? FilePickerFileTypes.All;
+
+        string[] parts = filter.Split('|', StringSplitOptions.TrimEntries);
+        if (parts.Length < 2)
+            return fallback ?? FilePickerFileTypes.All;
+
+        List<FilePickerFileType> fileTypes = [];
+        for (int i = 0; i + 1 < parts.Length; i += 2)
+        {
+            string name = String.IsNullOrWhiteSpace(parts[i]) ? "Files" : parts[i];
+            List<string> patterns = parts[i + 1]
+                .Split(';', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(NormalizeFilterPattern)
+                .Where(pattern => !String.IsNullOrWhiteSpace(pattern))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (patterns.Count == 0)
+                continue;
+
+            fileTypes.Add(new FilePickerFileType(name)
+            {
+                Patterns = patterns,
+            });
+        }
+
+        return fileTypes.Count > 0 ? fileTypes : fallback ?? FilePickerFileTypes.All;
+    }
+
+    private static string NormalizeFilterPattern(string pattern)
+    {
+        if (pattern == "*")
+            return "*.*";
+
+        if (pattern.StartsWith("*.") || pattern.StartsWith('*'))
+            return pattern;
+
+        string trimmed = pattern.TrimStart('.');
+        return $"*.{trimmed}";
+    }
 }
 
 public class ScriptGlobals : IScriptInterface, IDisposable
 {
+    private readonly Scripting scripting;
     private readonly MainViewModel mainVM;
     private readonly string? scriptPath;
 
     private ILoaderWindow? loaderWindow;
     private int loaderValue;
+    private CancellationTokenSource? progressUpdaterCts;
+    private Task? progressUpdater;
 
     public ScriptGlobals(Scripting scripting, string? scriptPath)
     {
+        this.scripting = scripting;
         mainVM = scripting.MainVM;
         this.scriptPath = scriptPath;
     }
 
     public void Dispose()
     {
+        progressUpdaterCts?.Cancel();
+        progressUpdaterCts?.Dispose();
+        progressUpdaterCts = null;
+        progressUpdater = null;
         loaderWindow?.Close();
         loaderWindow = null;
     }
@@ -126,21 +233,23 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public string? ScriptPath => scriptPath;
 
-    public object Highlighted => throw new NotImplementedException();
+    public object? Highlighted => Selected;
 
-    public object Selected => throw new NotImplementedException();
+    public object? Selected => mainVM.TabSelected?.Content is IUndertaleResourceViewModel resourceViewModel
+        ? resourceViewModel.Resource
+        : mainVM.TabSelected?.Content;
 
-    public bool CanSave => throw new NotImplementedException();
+    public bool CanSave => mainVM.Data is not null;
 
-    public bool ScriptExecutionSuccess => throw new NotImplementedException();
+    public bool ScriptExecutionSuccess => scripting.ScriptExecutionSuccess;
 
-    public string ScriptErrorMessage => throw new NotImplementedException();
+    public string ScriptErrorMessage => scripting.ScriptErrorMessage;
 
     public string? ExePath => Path.GetDirectoryName(Environment.ProcessPath);
 
-    public string ScriptErrorType => throw new NotImplementedException();
+    public string ScriptErrorType => scripting.ScriptErrorType;
 
-    public bool IsAppClosed => throw new NotImplementedException();
+    public bool IsAppClosed => false;
 
     public Action<Action> MainThreadAction => Dispatcher.UIThread.Invoke;
 
@@ -158,25 +267,28 @@ public class ScriptGlobals : IScriptInterface, IDisposable
     {
         Interlocked.Add(ref loaderValue, amount);
 
-        Dispatcher.UIThread.Post(() =>
+        if (progressUpdaterCts is null)
         {
-            loaderWindow?.SetValue(loaderValue);
-        }, DispatcherPriority.Background);
+            Dispatcher.UIThread.Post(() =>
+            {
+                loaderWindow?.SetValue(loaderValue);
+            }, DispatcherPriority.Background);
+        }
     }
 
     public void ChangeSelection(object newSelection, bool inNewTab = false)
     {
-        // TODO: Implement
+        Dispatcher.UIThread.Invoke(() => mainVM.TabOpen(newSelection, inNewTab));
     }
 
     public Task ClickableSearchOutput(string title, string query, int resultsCount, IOrderedEnumerable<KeyValuePair<string, List<(int lineNum, string codeLine)>>> resultsDict, bool showInDecompiledView, IOrderedEnumerable<string>? failedList = null)
     {
-        throw new NotImplementedException();
+        return ShowSearchOutput(title, query, resultsCount, resultsDict, failedList);
     }
 
     public Task ClickableSearchOutput(string title, string query, int resultsCount, IDictionary<string, List<(int lineNum, string codeLine)>> resultsDict, bool showInDecompiledView, IEnumerable<string>? failedList = null)
     {
-        throw new NotImplementedException();
+        return ShowSearchOutput(title, query, resultsCount, resultsDict, failedList);
     }
 
     public void EnableUI()
@@ -232,48 +344,73 @@ public class ScriptGlobals : IScriptInterface, IDisposable
     {
         Interlocked.Increment(ref loaderValue);
 
-        Dispatcher.UIThread.Post(() =>
+        if (progressUpdaterCts is null)
         {
-            loaderWindow?.SetValue(loaderValue);
-        }, DispatcherPriority.Background);
+            Dispatcher.UIThread.Post(() =>
+            {
+                loaderWindow?.SetValue(loaderValue);
+            }, DispatcherPriority.Background);
+        }
     }
 
     public void InitializeScriptDialog()
     {
-        // TODO: Implement
+        SetProgressBar();
     }
 
     public bool LintUMTScript(string path)
     {
-        throw new NotImplementedException();
+        if (!File.Exists(path))
+        {
+            string message = $"{path} does not exist!";
+            scripting.SetScriptError("FileNotFoundException", message);
+            ScriptError(message);
+            return false;
+        }
+
+        string scriptText = File.ReadAllText(path, Encoding.UTF8);
+        if (scripting.LintScript(scriptText, path, out string errorMessage))
+            return true;
+
+        ScriptError(errorMessage, "Script compile error");
+        return false;
     }
 
     public bool MakeNewDataFile()
     {
-        return mainVM.NewData().Result;
+        return RunOnMainThread(() => mainVM.NewData());
     }
 
     public string? PromptChooseDirectory()
     {
-        IReadOnlyList<IStorageFolder> folders = Task.Run(() => mainVM.View!.OpenFolderDialog(new()
+        if (mainVM.View is not { } view)
+            return null;
+
+        IReadOnlyList<IStorageFolder> folders = RunOnMainThread(() => view.OpenFolderDialog(new()
         {
             Title = "Select directory",
-        })).Result;
+        }));
 
         if (folders.Count != 1)
             return null;
 
-        return folders[0].TryGetLocalPath();
+        string? path = folders[0].TryGetLocalPath();
+        if (path is null)
+            return null;
+
+        return Path.EndsInDirectorySeparator(path) ? path : path + Path.DirectorySeparatorChar;
     }
 
     public string? PromptLoadFile(string? defaultExt, string? filter)
     {
-        // TODO: filter
-        var files = Task.Run(() => mainVM.View!.OpenFileDialog(new FilePickerOpenOptions()
+        if (mainVM.View is not { } view)
+            return null;
+
+        var files = RunOnMainThread(() => view.OpenFileDialog(new FilePickerOpenOptions()
         {
             Title = "Load file",
-            FileTypeFilter = FilePickerFileTypes.All,
-        })).Result;
+            FileTypeFilter = Scripting.CreateFilePickerTypes(filter, FilePickerFileTypes.Data),
+        }));
 
         if (files.Count != 1)
             return null;
@@ -283,13 +420,15 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public string? PromptSaveFile(string defaultExt, string filter)
     {
-        // TODO: filter
-        var file = Task.Run(() => mainVM.View!.SaveFileDialog(new FilePickerSaveOptions()
+        if (mainVM.View is not { } view)
+            return null;
+
+        var file = RunOnMainThread(() => view.SaveFileDialog(new FilePickerSaveOptions()
         {
             Title = "Save file",
-            FileTypeChoices = FilePickerFileTypes.All,
+            FileTypeChoices = Scripting.CreateFilePickerTypes(filter, FilePickerFileTypes.Data),
             DefaultExtension = defaultExt,
-        })).Result;
+        }));
 
         if (file is null)
             return null;
@@ -299,48 +438,68 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public bool RunUMTScript(string path)
     {
-        throw new NotImplementedException();
+        if (!File.Exists(path))
+        {
+            string message = $"{path} does not exist!";
+            scripting.SetScriptError("FileNotFoundException", message);
+            ScriptError(message);
+            return false;
+        }
+
+        string scriptText = $"#line 1 \"{path}\"\n" + File.ReadAllText(path, Encoding.UTF8);
+        RunOnMainThread(() => scripting.RunScript(scriptText, path));
+        return scripting.ScriptExecutionSuccess;
     }
 
     public void ScriptError(string error, string title = "Error", bool SetConsoleText = true)
     {
-        mainVM.View!.MessageDialog(error, title).WaitOnDispatcherFrame();
+        ShowMessageDialogIfPossible(error, title);
 
         if (SetConsoleText)
         {
-            mainVM.CommandTextBoxText = error;
+            SetUMTConsoleText(error);
+            SetFinishedMessage(false);
         }
     }
 
     public string? ScriptInputDialog(string title, string label, string defaultInput, string cancelText, string submitText, bool isMultiline, bool preventClose)
     {
         // TODO: cancelText, submitText, preventClose
-        return mainVM.View!.TextBoxDialog(label, defaultInput, title: title, isMultiline: isMultiline).WaitOnDispatcherFrame();
+        if (mainVM.View is not { } view)
+            return null;
+
+        return RunOnMainThread(() => view.TextBoxDialog(label, defaultInput, title: title, isMultiline: isMultiline));
     }
 
     public void ScriptMessage(string message)
     {
-        mainVM.View!.MessageDialog(message, title: "Script message").WaitOnDispatcherFrame();
+        ShowMessageDialogIfPossible(message, "Script message");
     }
 
     public void ScriptOpenURL(string url)
     {
-        mainVM.View!.LaunchUriAsync(new(url)).Wait();
+        if (mainVM.View is not { } view)
+            return;
+
+        RunOnMainThread(() => view.LaunchUriAsync(new(url)));
     }
 
     public bool ScriptQuestion(string message)
     {
-        return mainVM.View!.MessageDialog(message, "Script question", MessageWindow.Buttons.YesNo).WaitOnDispatcherFrame() == MessageWindow.Result.Yes;
+        if (mainVM.View is not { } view)
+            return false;
+
+        return RunOnMainThread(() => view.MessageDialog(message, "Script question", MessageWindow.Buttons.YesNo)) == MessageWindow.Result.Yes;
     }
 
     public void ScriptWarning(string message)
     {
-        mainVM.View!.MessageDialog(message, title: "Script warning").WaitOnDispatcherFrame();
+        ShowMessageDialogIfPossible(message, "Script warning");
     }
 
     public void SetFinishedMessage(bool isFinishedMessageEnabled)
     {
-        // TODO: Implement
+        scripting.SetFinishedMessage(isFinishedMessageEnabled);
     }
 
     public void SetProgress(int value)
@@ -355,11 +514,14 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public void SetProgressBar(string message, string status, double progressValue, double maxValue)
     {
+        if (mainVM.View is not { } view)
+            return;
+
         loaderValue = (int)progressValue;
 
         Dispatcher.UIThread.Invoke(() =>
         {
-            loaderWindow ??= mainVM.View!.LoaderOpen();
+            loaderWindow ??= view.LoaderOpen();
             loaderWindow.EnsureShown();
             loaderWindow.SetMessage(message);
             loaderWindow.SetStatus(status);
@@ -370,38 +532,71 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public void SetProgressBar()
     {
+        if (mainVM.View is not { } view)
+            return;
+
         Dispatcher.UIThread.Invoke(() =>
         {
-            loaderWindow ??= mainVM.View!.LoaderOpen();
+            loaderWindow ??= view.LoaderOpen();
             loaderWindow.EnsureShown();
         });
     }
 
     public void SetUMTConsoleText(string message)
     {
-        mainVM.CommandTextBoxText = message;
+        RunOnMainThread(() => mainVM.CommandTextBoxText = message);
     }
 
     public string? SimpleTextInput(string title, string label, string defaultValue, bool allowMultiline, bool showDialog = true)
     {
         // TODO: showDialog
-        return mainVM.View!.TextBoxDialog(label, defaultValue, title: title, isMultiline: allowMultiline).WaitOnDispatcherFrame();
+        if (mainVM.View is not { } view)
+            return null;
+
+        return RunOnMainThread(() => view.TextBoxDialog(label, defaultValue, title: title, isMultiline: allowMultiline));
     }
 
     public void SimpleTextOutput(string title, string label, string message, bool allowMultiline)
     {
-        mainVM.View!.TextBoxDialog(label, message, title: title, isMultiline: allowMultiline, isReadOnly: true).WaitOnDispatcherFrame();
+        if (mainVM.View is not { } view)
+            return;
+
+        RunOnMainThread(() => view.TextBoxDialog(label, message, title: title, isMultiline: allowMultiline, isReadOnly: true));
     }
 
     public void StartProgressBarUpdater()
     {
-        // TODO: Implement
+        if (progressUpdaterCts is not null)
+        {
+            ScriptWarning("Warning - there is another progress bar updater task running in the background.");
+            return;
+        }
+
+        progressUpdaterCts = new CancellationTokenSource();
+        progressUpdater = Task.Run(() => ProgressUpdater(progressUpdaterCts.Token));
     }
 
-    public Task StopProgressBarUpdater()
+    public async Task StopProgressBarUpdater()
     {
-        // TODO: Implement
-        return Task.CompletedTask;
+        if (progressUpdaterCts is null || progressUpdater is null)
+            return;
+
+        CancellationTokenSource cts = progressUpdaterCts;
+        Task updater = progressUpdater;
+
+        cts.Cancel();
+
+        Task completed = await Task.WhenAny(updater, Task.Delay(2000));
+        if (completed != updater)
+        {
+            ScriptError("Stopping the progress bar updater task failed. Restarting the application is recommended.", "Script error", SetConsoleText: false);
+            return;
+        }
+
+        await updater;
+        cts.Dispose();
+        progressUpdaterCts = null;
+        progressUpdater = null;
     }
 
     public void UpdateProgressBar(string message, string status, double progressValue, double maxValue)
@@ -426,4 +621,105 @@ public class ScriptGlobals : IScriptInterface, IDisposable
             loaderWindow?.SetValue(loaderValue);
         });
     }
+
+    private Task ShowSearchOutput(string title, string query, int resultsCount, IEnumerable<KeyValuePair<string, List<(int lineNum, string codeLine)>>> resultsDict, IEnumerable<string>? failedList)
+    {
+        StringBuilder output = new();
+        output.AppendLine($"Query: {query}");
+        output.AppendLine($"Results: {resultsCount}");
+        output.AppendLine();
+
+        foreach ((string codeName, List<(int lineNum, string codeLine)> results) in resultsDict)
+        {
+            output.AppendLine(codeName);
+            foreach ((int lineNum, string codeLine) in results)
+            {
+                output.Append("  ");
+                output.Append(lineNum);
+                output.Append(": ");
+                output.AppendLine(codeLine);
+            }
+            output.AppendLine();
+        }
+
+        if (failedList is not null)
+        {
+            string[] failures = failedList.ToArray();
+            if (failures.Length > 0)
+            {
+                output.AppendLine("Failed:");
+                foreach (string failed in failures)
+                    output.AppendLine($"  {failed}");
+            }
+        }
+
+        if (mainVM.View is not { } view)
+        {
+            SetUMTConsoleText(output.ToString());
+            return Task.CompletedTask;
+        }
+
+        RunOnMainThread(() => view.TextBoxDialog("Search results", output.ToString(), title: title, isMultiline: true, isReadOnly: true));
+        return Task.CompletedTask;
+    }
+
+    private void ShowMessageDialogIfPossible(string message, string title)
+    {
+        if (mainVM.View is null)
+            return;
+
+        RunOnMainThread(() => mainVM.View.MessageDialog(message, title));
+    }
+
+    private void ProgressUpdater(CancellationToken token)
+    {
+        Stopwatch frameTimer = new();
+        Stopwatch? stopTimeout = null;
+        int previousValue = Volatile.Read(ref loaderValue);
+
+        while (true)
+        {
+            frameTimer.Restart();
+
+            int currentValue = Volatile.Read(ref loaderValue);
+            UpdateProgressValue(currentValue);
+
+            if (token.IsCancellationRequested)
+            {
+                if (previousValue >= currentValue)
+                    return;
+
+                stopTimeout ??= Stopwatch.StartNew();
+                if (stopTimeout.ElapsedMilliseconds >= 500)
+                    return;
+            }
+            else if (currentValue != previousValue)
+            {
+                stopTimeout = null;
+            }
+
+            previousValue = currentValue;
+
+            int sleep = (int)Math.Max(0, 33 - frameTimer.ElapsedMilliseconds);
+            if (sleep > 0)
+                Thread.Sleep(sleep);
+        }
+    }
+
+    private T RunOnMainThread<T>(Func<T> action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            return action();
+
+        return Dispatcher.UIThread.Invoke(action);
+    }
+
+    private T RunOnMainThread<T>(Func<Task<T>> action)
+    {
+        if (Dispatcher.UIThread.CheckAccess())
+            return action().WaitOnDispatcherFrame();
+
+        return Dispatcher.UIThread.Invoke(() => action().WaitOnDispatcherFrame());
+    }
+
 }

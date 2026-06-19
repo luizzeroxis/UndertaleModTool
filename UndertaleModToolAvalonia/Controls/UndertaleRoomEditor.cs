@@ -44,6 +44,17 @@ public class UndertaleRoomEditor : Control
 
     readonly RoomRenderer rendererInstance = new();
 
+    public static readonly StyledProperty<bool> IsRenderingEnabledProperty =
+        AvaloniaProperty.Register<UndertaleRoomEditor, bool>(
+            nameof(IsRenderingEnabled),
+            defaultValue: true);
+
+    public bool IsRenderingEnabled
+    {
+        get => GetValue(IsRenderingEnabledProperty);
+        set => SetValue(IsRenderingEnabledProperty, value);
+    }
+
     double customDrawOperationTime;
 
     // Room controls
@@ -71,11 +82,19 @@ public class UndertaleRoomEditor : Control
         Interaction.SetBehaviors(this, [new ContextDropBehavior() { Handler = new UndertaleReferenceDropHandler() }]);
     }
 
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == IsRenderingEnabledProperty)
+            InvalidateVisual();
+    }
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
 
-        vm = (DataContext as UndertaleRoomViewModel)!;
+        vm = DataContext as UndertaleRoomViewModel;
         vm?.Room.SetupRoom();
 
         translation = new(0, 0);
@@ -84,10 +103,14 @@ public class UndertaleRoomEditor : Control
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
+        if (!IsRenderingEnabled || vm is null)
+            return;
+
+        UndertaleRoomViewModel roomVM = vm;
         PointerPoint pointerPoint = e.GetCurrentPoint(this);
         InteractionMode interactionMode = GetInteractionMode();
 
-        var roomItems = Updater.MakeRoomItems(vm!.Room);
+        var roomItems = Updater.MakeRoomItems(roomVM.Room);
 
         if (pointerPoint.Properties.IsMiddleButtonPressed)
         {
@@ -108,7 +131,7 @@ public class UndertaleRoomEditor : Control
             {
                 if (pointerPoint.Properties.IsLeftButtonPressed)
                 {
-                    SetLayerTileAtPointer(tilesLayer, vm!.SelectedTileData);
+                    SetLayerTileAtPointer(tilesLayer, roomVM.SelectedTileData);
                 }
                 else if (pointerPoint.Properties.IsRightButtonPressed)
                 {
@@ -120,11 +143,15 @@ public class UndertaleRoomEditor : Control
 
     protected override void OnPointerMoved(PointerEventArgs e)
     {
+        if (!IsRenderingEnabled || vm is null)
+            return;
+
+        UndertaleRoomViewModel roomVM = vm;
         PointerPoint pointerPoint = e.GetCurrentPoint(this);
         InteractionMode interactionMode = GetInteractionMode();
         UndertaleRoom.Layer? tilesLayer = GetSelectedTilesLayer();
 
-        var roomItems = Updater.MakeRoomItems(vm!.Room);
+        var roomItems = Updater.MakeRoomItems(roomVM.Room);
 
         pointerPosition = e.GetPosition(this);
         pointerPositionInRoom = (pointerPosition - translation) / scaling;
@@ -136,7 +163,7 @@ public class UndertaleRoomEditor : Control
             if (pointerPoint.Properties.IsLeftButtonPressed)
             {
                 ItemMoveOnMoved(roomItems);
-                roomItems = Updater.MakeRoomItems(vm!.Room);
+                roomItems = Updater.MakeRoomItems(roomVM.Room);
             }
         }
         else if (interactionMode == InteractionMode.Tiles)
@@ -145,7 +172,7 @@ public class UndertaleRoomEditor : Control
             {
                 if (pointerPoint.Properties.IsLeftButtonPressed)
                 {
-                    SetLayerTileAtPointer(tilesLayer, vm!.SelectedTileData);
+                    SetLayerTileAtPointer(tilesLayer, roomVM.SelectedTileData);
                 }
                 else if (pointerPoint.Properties.IsRightButtonPressed)
                 {
@@ -166,11 +193,15 @@ public class UndertaleRoomEditor : Control
             ItemHoverOnMoved(roomItems);
         }
 
-        vm!.StatusText = $"({Math.Floor(pointerPositionInRoom.X)}, {Math.Floor(pointerPositionInRoom.Y)})";
+        roomVM.StatusText = $"({Math.Floor(pointerPositionInRoom.X)}, {Math.Floor(pointerPositionInRoom.Y)})";
     }
 
     protected override void OnPointerReleased(PointerReleasedEventArgs e)
     {
+        if (!IsRenderingEnabled || vm is null)
+            return;
+
+        UndertaleRoomViewModel roomVM = vm;
         InteractionMode interactionMode = GetInteractionMode();
         UndertaleRoom.Layer? tilesLayer = GetSelectedTilesLayer();
 
@@ -184,7 +215,7 @@ public class UndertaleRoomEditor : Control
                     {
                         uint? tile = GetLayerTileAtPointer(tilesLayer);
                         if (tile is not null)
-                            vm!.SelectedTileData = (uint)tile;
+                            roomVM.SelectedTileData = (uint)tile;
                     }
                 }
             }
@@ -195,6 +226,9 @@ public class UndertaleRoomEditor : Control
 
     protected override void OnPointerWheelChanged(PointerWheelEventArgs e)
     {
+        if (!IsRenderingEnabled || vm is null)
+            return;
+
         if (e.Delta.Y > 0)
         {
             translation *= 2;
@@ -210,24 +244,30 @@ public class UndertaleRoomEditor : Control
 
         translation = new Vector(Math.Round(translation.X), Math.Round(translation.Y));
 
-        vm!.Zoom = scaling;
+        vm.Zoom = scaling;
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
+        if (!IsRenderingEnabled || vm is null)
+            return;
+
         if (e.PhysicalKey == PhysicalKey.Space)
         {
             TranslationMoveOnPressed();
         }
         else if (e.PhysicalKey == PhysicalKey.F)
         {
-            var roomItems = Updater.MakeRoomItems(vm!.Room);
+            var roomItems = Updater.MakeRoomItems(vm.Room);
             FocusOnSelectedItem(roomItems);
         }
     }
 
     protected override void OnKeyUp(KeyEventArgs e)
     {
+        if (!IsRenderingEnabled || vm is null)
+            return;
+
         if (e.PhysicalKey == PhysicalKey.Space)
         {
             TranslationMoveOnReleased();
@@ -236,22 +276,46 @@ public class UndertaleRoomEditor : Control
 
     public override void Render(DrawingContext context)
     {
-        if (IsEffectivelyVisible)
+        if (!IsEffectivelyVisible || vm is null)
+            return;
+
+        UndertaleRoomViewModel roomVM = vm;
+        scaling = roomVM.Zoom;
+
+        if (!IsRenderingEnabled)
         {
-            scaling = vm?.Zoom ?? 1;
-
-            context.Custom(new CustomDrawOperation(this));
-
-#if DEBUG
-            RenderDebugText(context);
-#endif
+            RenderPlaceholder(context);
+            return;
         }
 
-        TopLevel topLevel = TopLevel.GetTopLevel(this)!;
-        topLevel.RequestAnimationFrame(_ =>
+        context.Custom(new CustomDrawOperation(this, roomVM));
+
+#if DEBUG
+        RenderDebugText(context);
+#endif
+
+        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ =>
         {
             InvalidateVisual();
         });
+    }
+
+    void RenderPlaceholder(DrawingContext context)
+    {
+        Rect rect = new(0, 0, Bounds.Width, Bounds.Height);
+        context.DrawRectangle(
+            new SolidColorBrush(Color.FromRgb(35, 39, 45)),
+            new Pen(new SolidColorBrush(Color.FromRgb(78, 86, 96))),
+            rect);
+
+        context.DrawText(new FormattedText(
+            "Room preview not rendered",
+            CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight,
+            Typeface.Default,
+            13,
+            new SolidColorBrush(Color.FromRgb(210, 216, 224))),
+            new Point(12, 12));
     }
 
     InteractionMode GetInteractionMode()
@@ -268,7 +332,7 @@ public class UndertaleRoomEditor : Control
 
     UndertaleRoom.Layer? GetSelectedTilesLayer()
     {
-        if (vm!.RoomTreeItemsSelectedItem is UndertaleRoom.Layer { LayerType: UndertaleRoom.LayerType.Tiles } tilesLayer)
+        if (vm?.RoomTreeItemsSelectedItem is UndertaleRoom.Layer { LayerType: UndertaleRoom.LayerType.Tiles } tilesLayer)
         {
             return tilesLayer;
         }
@@ -304,7 +368,10 @@ public class UndertaleRoomEditor : Control
             if (roomItem.Selectable is null)
                 continue;
 
-            if (vm!.IsSelectAnyLayerEnabled || vm!.CategorySelected is null || roomItem.Selectable.Category == vm!.CategorySelected)
+            if (vm is null ||
+                vm.IsSelectAnyLayerEnabled ||
+                vm.CategorySelected is null ||
+                roomItem.Selectable.Category == vm.CategorySelected)
                 if (RectContainsPoint(roomItem.Selectable.Bounds, roomItem.Selectable.Rotation, roomItem.Selectable.Pivot, pointerPositionInRoom))
                 {
                     hoveredItem = roomItem.Object;
@@ -322,14 +389,18 @@ public class UndertaleRoomEditor : Control
             RoomItemProperties properties = hoveredRoomItem.Selectable.GetProperties();
             itemMoveOffset = new(pointerPositionInRoom.X - properties.X, pointerPositionInRoom.Y - properties.Y);
 
-            vm!.RoomTreeItemsSelectedItem = hoveredRoomItem.Object;
+            if (vm is not null)
+                vm.RoomTreeItemsSelectedItem = hoveredRoomItem.Object;
         }
         else
         {
-            if (!vm!.IsSelectAnyLayerEnabled)
-                vm!.RoomTreeItemsSelectedItem = vm.FindItemFromCategory(vm!.CategorySelected);
+            if (vm is null)
+                return;
+
+            if (!vm.IsSelectAnyLayerEnabled)
+                vm.RoomTreeItemsSelectedItem = vm.FindItemFromCategory(vm.CategorySelected);
             else
-                vm!.RoomTreeItemsSelectedItem = null;
+                vm.RoomTreeItemsSelectedItem = null;
         }
     }
 
@@ -341,7 +412,7 @@ public class UndertaleRoomEditor : Control
             double x = pointerPositionInRoom.X - itemMoveOffset.X;
             double y = pointerPositionInRoom.Y - itemMoveOffset.Y;
 
-            if (vm!.IsGridEnabled)
+            if (vm?.IsGridEnabled == true)
             {
                 x = (Math.Floor(pointerPositionInRoom.X / vm.GridWidth) * vm.GridWidth)
                     - (Math.Floor(itemMoveOffset.X / vm.GridWidth) * vm.GridWidth);
@@ -460,7 +531,6 @@ public class UndertaleRoomEditor : Control
 
         readonly UndertaleRoomEditor editor;
 
-        readonly UndertaleRoomViewModel vm;
         readonly Vector translation;
         readonly double scaling;
 
@@ -481,12 +551,11 @@ public class UndertaleRoomEditor : Control
 
         readonly SKColor selectedColor;
 
-        public CustomDrawOperation(UndertaleRoomEditor editor)
+        public CustomDrawOperation(UndertaleRoomEditor editor, UndertaleRoomViewModel vm)
         {
             this.editor = editor;
             Bounds = new(0, 0, editor.Bounds.Width, editor.Bounds.Height);
 
-            vm = editor.vm!;
             translation = editor.translation;
             scaling = editor.scaling;
 
@@ -595,9 +664,8 @@ public class UndertaleRoomEditor : Control
                 stopWatch.Stop();
                 editor.customDrawOperationTime = Math.Ceiling(stopWatch.Elapsed.TotalMilliseconds);
             }
-            catch (Exception e)
+            catch
             {
-                Debugger.Break();
                 throw;
             }
         }

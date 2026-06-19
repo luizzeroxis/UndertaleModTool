@@ -58,16 +58,21 @@ public partial class SearchInCodeViewModel
 
     public async void Search()
     {
+        await SearchTask();
+    }
+
+    public async Task<bool> SearchTask()
+    {
         if (MainVM.Data is null)
         {
             StatusBarText = "Error: No data file loaded.";
-            return;
+            return false;
         }
 
         if (MainVM.Data.IsYYC())
         {
             StatusBarText = "Error: Can't search code in YYC game, there's no code to search.";
-            return;
+            return false;
         }
 
         searchText = SearchText.Replace("\r\n", "\n");
@@ -75,7 +80,7 @@ public partial class SearchInCodeViewModel
         if (String.IsNullOrEmpty(searchText))
         {
             StatusBarText = "Error: No text to search.";
-            return;
+            return false;
         }
 
         if (IsRegexSearch)
@@ -87,12 +92,18 @@ public partial class SearchInCodeViewModel
             catch (ArgumentException e)
             {
                 StatusBarText = $"Error: Invalid regex ({e.Message})";
-                return;
+                return false;
             }
         }
 
+        if (View is not { } view)
+        {
+            StatusBarText = "Error: Search window is not attached.";
+            return false;
+        }
+
         // Set up loader window
-        loaderWindow = View!.LoaderOpen();
+        loaderWindow = view.LoaderOpen();
         loaderWindow.SetMaximum(MainVM.Data.Code.Count);
         loaderWindow.SetValue(0);
         loaderWindow.SetMessage("Searching...");
@@ -147,6 +158,7 @@ public partial class SearchInCodeViewModel
 
         IsEnabled = true;
         MainVM.IsEnabled = true;
+        return true;
     }
 
     void SearchInUndertaleCode(UndertaleCode code)

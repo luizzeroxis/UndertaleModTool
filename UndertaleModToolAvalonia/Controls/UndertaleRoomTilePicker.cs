@@ -124,8 +124,7 @@ public class UndertaleRoomTilePicker : Control
             });
         }
 
-        TopLevel topLevel = TopLevel.GetTopLevel(this)!;
-        topLevel.RequestAnimationFrame(_ =>
+        TopLevel.GetTopLevel(this)?.RequestAnimationFrame(_ =>
         {
             InvalidateVisual();
         });

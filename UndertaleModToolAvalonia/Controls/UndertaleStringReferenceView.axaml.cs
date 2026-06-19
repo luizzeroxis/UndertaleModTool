@@ -63,14 +63,14 @@ public partial class UndertaleStringReferenceView : UserControl
 
     public void Open()
     {
-        MainViewModel mainView = (this.FindLogicalAncestorOfType<MainView>()!.DataContext as MainViewModel)!;
-        mainView.TabOpen(Reference);
+        if (TryGetMainViewModel() is { } mainView)
+            mainView.TabOpen(Reference);
     }
 
     public void OpenInNewTab()
     {
-        MainViewModel mainView = (this.FindLogicalAncestorOfType<MainView>()!.DataContext as MainViewModel)!;
-        mainView.TabOpen(Reference, inNewTab: true);
+        if (TryGetMainViewModel() is { } mainView)
+            mainView.TabOpen(Reference, inNewTab: true);
     }
 
     void UpdateString(TextBox textBox)
@@ -78,7 +78,7 @@ public partial class UndertaleStringReferenceView : UserControl
         if (Reference is not null)
         {
             // TODO: Ask if user wants to change all references or just this one
-            BindingOperations.GetBindingExpressionBase(textBox, TextBox.TextProperty)!.UpdateSource();
+            BindingOperations.GetBindingExpressionBase(textBox, TextBox.TextProperty)?.UpdateSource();
         }
         else
         {
@@ -88,7 +88,14 @@ public partial class UndertaleStringReferenceView : UserControl
 
     void UpdateTextBoxWatermark()
     {
-        this.Find<TextBox>("TextBox")!.PlaceholderText = (Reference is null) ? "(UndertaleString reference)" : "";
+        TextBox? textBox = this.Find<TextBox>("TextBox");
+        if (textBox is not null)
+            textBox.PlaceholderText = (Reference is null) ? "(UndertaleString reference)" : "";
+    }
+
+    private MainViewModel? TryGetMainViewModel()
+    {
+        return this.FindLogicalAncestorOfType<MainView>()?.DataContext as MainViewModel;
     }
 }
 

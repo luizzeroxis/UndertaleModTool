@@ -38,7 +38,7 @@
             </NativeMenuItem>
             <NativeMenuItem Header="_Scripts">
                 <NativeMenu>
-                    <NativeMenuItem Header="Run _other script" Command="{Binding ScriptsRunOtherScript}" />
+                    <NativeMenuItem Header="Run _other script..." Command="{Binding ScriptsRunOtherScript}" />
                 </NativeMenu>
             </NativeMenuItem>
             <NativeMenuItem Header="_Project">
