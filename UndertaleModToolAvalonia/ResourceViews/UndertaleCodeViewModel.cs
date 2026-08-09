@@ -41,8 +41,11 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
     [ObservableProperty]
     public partial (Tab Tab, int Line, int Column)? LastGoToLocation { get; set; } = null;
 
-    public TextDocument? GMLTextDocument { get; set; }
-    public TextDocument? ASMTextDocument { get; set; }
+    [ObservableProperty]
+    public partial TextDocument? GMLTextDocument { get; set; }
+
+    [ObservableProperty]
+    public partial TextDocument? ASMTextDocument { get; set; }
 
     [ObservableProperty]
     public partial bool IsCodeProcessing { get; set; } = false;
@@ -147,25 +150,51 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
         CodeProcessEnd();
     }
 
-    partial void OnSelectedTabChanged(Tab oldValue, Tab newValue)
+    async partial void OnGMLTextDocumentChanged(TextDocument? value)
     {
-        async void F()
+        if (value is null)
+            return;
+
+        if (SelectedTab == Tab.GML)
         {
             await CodeProcessStart();
-
-            if (GetTabState(oldValue) is TabState.NeedsCompile)
-            {
-                await CompileFromTab(oldValue);
-            }
-
-            if (GetTabState(newValue) is TabState.NeedsDecompile)
-            {
-                await DecompileToTab(newValue);
-            }
-
+            await DecompileToTab(Tab.GML);
             CodeProcessEnd();
         }
-        F();
+
+        value.UndoStack.ClearAll();
+    }
+
+    async partial void OnASMTextDocumentChanged(TextDocument? value)
+    {
+        if (value is null)
+            return;
+
+        if (SelectedTab == Tab.ASM)
+        {
+            await CodeProcessStart();
+            await DecompileToTab(Tab.ASM);
+            CodeProcessEnd();
+        }
+
+        value.UndoStack.ClearAll();
+    }
+
+    async partial void OnSelectedTabChanged(Tab oldValue, Tab newValue)
+    {
+        await CodeProcessStart();
+
+        if (GetTabState(oldValue) is TabState.NeedsCompile)
+        {
+            await CompileFromTab(oldValue);
+        }
+
+        if (GetTabState(newValue) is TabState.NeedsDecompile)
+        {
+            await DecompileToTab(newValue);
+        }
+
+        CodeProcessEnd();
     }
 
     async Task CodeProcessStart()
@@ -196,6 +225,13 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
     {
         Tab.GML => GMLTabState,
         Tab.ASM => ASMTabState,
+        _ => throw new NotImplementedException(),
+    };
+
+    TextDocument? GetTabDocument(Tab tab) => tab switch
+    {
+        Tab.GML => GMLTextDocument,
+        Tab.ASM => ASMTextDocument,
         _ => throw new NotImplementedException(),
     };
 

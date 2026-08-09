@@ -66,7 +66,9 @@ public partial class UndertaleCodeView : UserControl
         if (change.Property == DataContextProperty)
         {
             if (change.OldValue is UndertaleCodeViewModel oldVM)
+            {
                 oldVM.PropertyChanged -= DataContext_PropertyChanged;
+            }
 
             if (change.NewValue is not UndertaleCodeViewModel vm)
                 return;
@@ -113,10 +115,12 @@ public partial class UndertaleCodeView : UserControl
 
             UpdateHighlightingCache();
 
+            GMLTextEditor.TextArea.Caret.Location = default;
+            ASMTextEditor.TextArea.Caret.Location = default;
+            lastCaretLocations = default;
+
             vm.GMLTabState = TabState.NeedsDecompile;
             vm.ASMTabState = TabState.NeedsDecompile;
-
-            await vm.DecompileCurrent();
         }
     }
 
