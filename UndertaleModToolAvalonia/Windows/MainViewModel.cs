@@ -793,6 +793,44 @@ public partial class MainViewModel : ObservableObject
         return false;
     }
 
+    public async void ProjectReload()
+    {
+        if (Project is null)
+            return;
+
+        if (Project.LoadDataPath is null || Project.SaveDataPath is null || Project.MainFilePath is null)
+            return;
+
+        string sourceDataPath = Project.LoadDataPath;
+        string destinationDataPath = Project.SaveDataPath;
+        string projectFilePath = Project.MainFilePath;
+
+        if (!await AskProjectSave("There are assets marked to be exported in the current project. Save project before reloading?"))
+            return;
+
+        ClearProject();
+
+        ProjectContext projectContext;
+        try
+        {
+            projectContext = ProjectContext.CreateWithDataFilePaths(sourceDataPath, destinationDataPath, projectFilePath);
+            projectContext.Import(Data, Settings!.EnableProjectBackup ? null : new GameFileNoOpBackup(), Dispatcher.UIThread.Invoke);
+        }
+        catch (ProjectException e)
+        {
+            await View!.MessageDialog($"Failed to load project:\n{e.Message}");
+            return;
+        }
+        catch (Exception e)
+        {
+            await View!.MessageDialog($"Error occurred when reloading project:\n{e}");
+            return;
+        }
+
+        DataPath = destinationDataPath;
+        SetProject(projectContext);
+    }
+
     public async void ProjectViewUnexportedAssets()
     {
         if (Project is null || Data is null || DataPath is null)
