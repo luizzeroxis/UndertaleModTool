@@ -457,7 +457,6 @@
                                         <TextBox Grid.Column="3" Text="{Binding Height}" />
                                     </Grid>
 
-                                    <!-- TODO: Tile selector -->
                                     <Label>Depth</Label>
                                     <TextBox Text="{Binding TileDepth}" />
 
@@ -491,6 +490,46 @@
 
                                         <Label>Visible</Label>
                                         <CheckBox IsChecked="{Binding IsVisible}" />
+                                    </Grid>
+
+                                    <Grid l:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,2*"
+                                          IsVisible="{Binding $parent[l:MainView].((l:MainViewModel)DataContext).DataVersion,
+                                          Converter={StaticResource VersionCompareConverter},
+                                          ConverterParameter=GE2022.1}">
+                                        <Label>Effect enabled</Label>
+                                        <CheckBox IsChecked="{Binding EffectEnabled}" />
+
+                                        <Label>Effect type</Label>
+                                        <l:UndertaleStringReferenceView Reference="{Binding EffectType}" />
+
+                                        <Label>Effect properties</Label>
+                                        <l:EditableDataGrid ItemsSource="{Binding EffectProperties}" ItemFactory="{Binding #Root.DataContext.CreateEffectProperty}">
+                                            <l:EditableDataGrid.Columns>
+                                                <DataGridTemplateColumn Header="Kind" Width="1*">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate x:DataType="undertalem:UndertaleRoom+EffectProperty">
+                                                            <ComboBox
+                                                                ItemsSource="{Binding Source={x:Type undertalem:UndertaleRoom+EffectProperty+PropertyType}, Converter={StaticResource EnumTypeToValuesConverter}}"
+                                                                SelectedItem="{Binding Kind}" />
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTemplateColumn Header="Name" Width="1*">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate x:DataType="undertalem:UndertaleRoom+EffectProperty">
+                                                            <l:UndertaleStringReferenceView Reference="{Binding Name}" />
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                                <DataGridTemplateColumn Header="Value" Width="1*">
+                                                    <DataGridTemplateColumn.CellTemplate>
+                                                        <DataTemplate x:DataType="undertalem:UndertaleRoom+EffectProperty">
+                                                            <l:UndertaleStringReferenceView Reference="{Binding Value}" />
+                                                        </DataTemplate>
+                                                    </DataGridTemplateColumn.CellTemplate>
+                                                </DataGridTemplateColumn>
+                                            </l:EditableDataGrid.Columns>
+                                        </l:EditableDataGrid>
                                     </Grid>
                                 
                                     <!-- TODO: Properties for all types of layers -->
@@ -545,7 +584,7 @@
                                                 </Grid>
                                             </DataTemplate>
                                             <DataTemplate DataType="undertalem:UndertaleRoom+Layer+LayerInstancesData">
-                                                <TextBlock Text="Contains GameObject instances, listed in the tree on the left" />
+                                                <TextBlock Text="Contains GameObject instances, listed in the tree" />
                                             </DataTemplate>
                                             <DataTemplate DataType="undertalem:UndertaleRoom+Layer+LayerTilesData">
                                                 <StackPanel>
@@ -613,14 +652,46 @@
                                                         </Grid>
                                                     </Grid>
 
-                                                    <TextBlock Text="Contains assets, listed in the tree on the left" />
+                                                    <TextBlock Text="Contains assets, listed in the tree" />
                                                 </StackPanel>
                                             </DataTemplate>
                                             
                                             <DataTemplate DataType="undertalem:UndertaleRoom+Layer+LayerEffectData">
-                                                <TextBlock Text="Effect." />
-                                                
-                                                <!-- TODO: All effect data properties -->
+                                                <StackPanel>
+                                                    <Grid l:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,2*">
+                                                        <Label>Effect type</Label>
+                                                        <l:UndertaleStringReferenceView Reference="{ReflectionBinding #Layer.DataContext.EffectType}" />
+
+                                                        <Label>Properties</Label>
+                                                        <l:EditableDataGrid ItemsSource="{ReflectionBinding #Layer.DataContext.Properties}" ItemFactory="{Binding #Root.DataContext.CreateEffectProperty}">
+                                                            <l:EditableDataGrid.Columns>
+                                                                <DataGridTemplateColumn Header="Kind" Width="Auto">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate x:DataType="undertalem:UndertaleRoom+EffectProperty">
+                                                                            <ComboBox
+                                                                                ItemsSource="{Binding Source={x:Type undertalem:UndertaleRoom+EffectProperty+PropertyType}, Converter={StaticResource EnumTypeToValuesConverter}}"
+                                                                                SelectedItem="{Binding Kind}" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                                <DataGridTemplateColumn Header="Name" Width="Auto">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate x:DataType="undertalem:UndertaleRoom+EffectProperty">
+                                                                            <l:UndertaleStringReferenceView Reference="{Binding Name}" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                                <DataGridTemplateColumn Header="Value" Width="Auto">
+                                                                    <DataGridTemplateColumn.CellTemplate>
+                                                                        <DataTemplate x:DataType="undertalem:UndertaleRoom+EffectProperty">
+                                                                            <l:UndertaleStringReferenceView Reference="{Binding Value}" />
+                                                                        </DataTemplate>
+                                                                    </DataGridTemplateColumn.CellTemplate>
+                                                                </DataGridTemplateColumn>
+                                                            </l:EditableDataGrid.Columns>
+                                                        </l:EditableDataGrid>
+                                                    </Grid>
+                                                </StackPanel>
                                             </DataTemplate>
                                         </ContentControl.DataTemplates>
                                     </ContentControl>
@@ -714,7 +785,64 @@
                                     <Label>Name</Label>
                                     <l:UndertaleStringReferenceView Reference="{Binding Name}" />
 
-                                    <!-- TODO: Add all text item properties -->
+                                    <Label>X</Label>
+                                    <TextBox Text="{Binding X}" />
+
+                                    <Label>Y</Label>
+                                    <TextBox Text="{Binding Y}" />
+
+                                    <Label>Font</Label>
+                                    <l:UndertaleResourceReferenceView Reference="{Binding Font}" ReferenceType="undertalem:UndertaleFont" />
+
+                                    <Label>Scale X</Label>
+                                    <TextBox Text="{Binding ScaleX}" />
+
+                                    <Label>Scale Y</Label>
+                                    <TextBox Text="{Binding ScaleY}" />
+
+                                    <Label>Rotation</Label>
+                                    <TextBox Text="{Binding Rotation}" />
+
+                                    <Label>Color</Label>
+                                    <ColorPicker Color="{Binding Color, Converter={StaticResource UndertaleColorToColorConverter}}" />
+
+                                    <Label>Origin X</Label>
+                                    <TextBox Text="{Binding OriginX}" />
+
+                                    <Label>Origin Y</Label>
+                                    <TextBox Text="{Binding OriginY}" />
+
+                                    <Label>Text</Label>
+                                    <l:UndertaleStringReferenceView Reference="{Binding Text}" />
+
+                                    <Label>Alignment</Label>
+                                    <TextBox Text="{Binding Alignment}" />
+
+                                    <Label>Char spacing</Label>
+                                    <TextBox Text="{Binding CharSpacing}" />
+
+                                    <Label>Line spacing</Label>
+                                    <TextBox Text="{Binding LineSpacing}" />
+
+                                    <Label>Frame width</Label>
+                                    <TextBox Text="{Binding FrameWidth}" />
+
+                                    <Label>Frame height</Label>
+                                    <TextBox Text="{Binding FrameHeight}" />
+
+                                    <Label>Wrap</Label>
+                                    <CheckBox IsChecked="{Binding Wrap}" />
+
+                                    <Label>Paragraph spacing</Label>
+                                    <TextBox Text="{Binding ParagraphSpacing}" />
+                                    
+                                    <Label>Wrap mode</Label>
+                                    <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleSequence+TextKeyframes+WrapMode}, Converter={StaticResource EnumTypeToValuesConverter}}"
+                                              SelectedItem="{Binding WrapMode}" />
+
+                                    <Label>Origin</Label>
+                                    <ComboBox ItemsSource="{Binding Source={x:Type undertalem:UndertaleSequence+TextKeyframes+Origin}, Converter={StaticResource EnumTypeToValuesConverter}}"
+                                              SelectedItem="{Binding Origin}" />
                                 </Grid>
                             </DataTemplate>
                         </ContentControl.DataTemplates>

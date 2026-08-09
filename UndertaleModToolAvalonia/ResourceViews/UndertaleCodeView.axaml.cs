@@ -503,22 +503,25 @@ public partial class UndertaleCodeView : UserControl
 
                 BuiltinList list = data.BuiltinList;
 
+                MenuItem constantsMenuItem = new();
+                constantsMenuItem.Header = "Constants";
+
                 foreach (var (constantName, constantValue) in list.Constants)
                 {
                     if (constantValue == id)
                     {
                         MenuItem item = new();
-                        item.Header = constantName.Replace("_", "__") + " (constant)";
+                        item.Header = constantName.Replace("_", "__");
                         item.Click += (_, _) =>
                         {
                             document.Replace(documentOffset, text.Length, constantName, null);
                         };
-                        contextMenu.Items.Add(item);
-
-                        // TODO: Ideally it would show all constants, but that's too cluttered!
-                        break;
+                        constantsMenuItem.Items.Add(item);
                     }
                 }
+
+                if (constantsMenuItem.Items.Count > 0)
+                    contextMenu.Items.Add(constantsMenuItem);
 
                 contextMenu.Items.Add(new MenuItem() { Header = id + " (number)", IsEnabled = false });
 

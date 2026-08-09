@@ -28,6 +28,7 @@ public partial class UndertaleStringReferenceView : UserControl
     {
         InitializeComponent();
 
+        UpdateTextBoxWatermark();
         ReferenceTextBox.AddHandler(TextBox.KeyDownEvent, TextBox_KeyDown_Tunnel, RoutingStrategies.Tunnel);
     }
 

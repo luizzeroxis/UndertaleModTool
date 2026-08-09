@@ -47,7 +47,6 @@
                 <l:SKImageViewer Image="{Binding TexturePageItem}" />
             </ScrollViewer>
 
-            <!-- TODO: Import/Export -->
             <!-- TODO: Show item in texture -->
         </StackPanel>
     </ScrollViewer>

@@ -177,10 +177,10 @@ public partial class UndertaleRoomViewModel : ObservableObject, IUndertaleResour
     {
         if (layer.LayerType == LayerType.Instances)
         {
-            // TODO: Remove from InstanceCreationOrderIDs
             foreach (UndertaleRoom.GameObject? instance in layer.InstancesData.Instances)
             {
                 Room.GameObjects.Remove(instance);
+                Room.InstanceCreationOrderIDs.InstanceIDs.Remove(instance.InstanceID);
             }
         }
 
@@ -203,9 +203,9 @@ public partial class UndertaleRoomViewModel : ObservableObject, IUndertaleResour
 
     public void RemoveGameObjectInstance(GameObject instance, Layer? layer = null)
     {
-        // TODO: Remove from InstanceCreationOrderIDs
         layer?.InstancesData.Instances.Remove(instance);
         Room.GameObjects.Remove(instance);
+        Room.InstanceCreationOrderIDs.InstanceIDs.Remove(instance.InstanceID);
     }
 
     public Tile AddTile()
@@ -292,6 +292,8 @@ public partial class UndertaleRoomViewModel : ObservableObject, IUndertaleResour
     {
         list.Remove(asset);
     }
+
+    public static UndertaleRoom.EffectProperty CreateEffectProperty() => new();
 
     public object? FindItemFromCategory(object? category)
     {

@@ -153,8 +153,9 @@
                                                         </l:ValueDataTemplate>
                                                         <l:ValueDataTemplate DataType="undertalem:EventType" Value="{x:Static undertalem:EventType.Collision}">
                                                             <StackPanel>
-                                                                <l:UndertaleResourceReferenceView Reference="{ReflectionBinding #Event.DataContext.EventSubtype, Converter={StaticResource IdToUndertaleGameObjectConverter}}"
-                                                                                              ReferenceType="undertalem:UndertaleGameObject"/>
+                                                                <l:UndertaleResourceReferenceView
+                                                                    Reference="{ReflectionBinding #Event.DataContext.EventSubtype, Converter={StaticResource IdToUndertaleGameObjectConverter}}"
+                                                                    ReferenceType="undertalem:UndertaleGameObject"/>
                                                             </StackPanel>
                                                         </l:ValueDataTemplate>
                                                         <l:ValueDataTemplate DataType="undertalem:EventType" Value="{x:Static undertalem:EventType.Keyboard}">

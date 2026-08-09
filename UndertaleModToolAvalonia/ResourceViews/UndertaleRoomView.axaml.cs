@@ -283,7 +283,6 @@ public partial class UndertaleRoomView : UserControl
             && control.FindLogicalAncestorOfType<TreeViewItem>() is TreeViewItem treeViewItem
             && treeViewItem.DataContext is UndertaleRoom.Layer { LayerType: UndertaleRoom.LayerType.Assets } layer)
         {
-            // TODO: Move to view model
             vm.AddTextItemInstance(layer);
         }
     }

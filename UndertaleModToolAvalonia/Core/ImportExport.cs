@@ -80,14 +80,12 @@ public static class ImportExport
     {
         using MagickImage image = TextureWorker.ReadBGRAImageFromStream(stream);
 
-        // TODO: Deal with this
         var format = texturePageItem.TexturePage.TextureData.Image.Format;
         if (format == GMImage.ImageFormat.Dds)
-            return;
+            throw new InvalidOperationException("Can't import into DDS texture");
 
-        // TODO: And this
         if (image.Width != texturePageItem.SourceWidth || image.Height != texturePageItem.SourceHeight)
-            return;
+            throw new InvalidOperationException($"Size of image ({image.Width},{image.Height}) does not match texture page item source size ({(texturePageItem.SourceWidth)},{texturePageItem.SourceHeight})");
 
         texturePageItem.ReplaceTexture(image);
     }
