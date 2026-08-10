@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml;
 using Avalonia;
 using Avalonia.Controls;
@@ -121,6 +122,12 @@ public partial class UndertaleCodeView : UserControl
 
             vm.GMLTabState = TabState.NeedsDecompile;
             vm.ASMTabState = TabState.NeedsDecompile;
+
+            await GoToLastGoToLocation();
+            await vm.DecompileCurrent();
+
+            GMLTextEditor.Document.UndoStack.ClearAll();
+            ASMTextEditor.Document.UndoStack.ClearAll();
         }
     }
 
@@ -145,7 +152,7 @@ public partial class UndertaleCodeView : UserControl
                     break;
 
                 case nameof(UndertaleCodeViewModel.LastGoToLocation):
-                    GoToLastGoToLocation();
+                    _ = GoToLastGoToLocation();
                     break;
             }
         }
@@ -259,7 +266,7 @@ public partial class UndertaleCodeView : UserControl
         textEditor.Options.HighlightCurrentLine = true;
     }
 
-    public async void GoToLastGoToLocation()
+    public async Task GoToLastGoToLocation()
     {
         if (DataContext is not UndertaleCodeViewModel vm)
             return;

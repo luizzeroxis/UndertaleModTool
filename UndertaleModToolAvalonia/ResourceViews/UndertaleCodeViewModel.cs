@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Threading;
@@ -77,37 +77,41 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
     ILoaderWindow? loaderWindow;
     IInputElement? lastFocusedElement;
 
-    readonly SemaphoreSlim codeProcessSemaphore = new(1, 1);
+    readonly TaskQueue taskQueue = new();
+    readonly TaskCompletionSource gmlReady = new();
+    readonly TaskCompletionSource asmReady = new();
 
     public UndertaleCodeViewModel(UndertaleCode code, IServiceProvider serviceProvider)
     {
         MainVM = serviceProvider.GetRequiredService<MainViewModel>();
 
         Code = code;
+
+        taskQueue.Add(() => gmlReady.Task);
+        taskQueue.Add(() => asmReady.Task);
     }
 
     async Task<bool> ITabContent.OnSave()
     {
-        await CodeProcessStart();
-
-        if (GetTabState(SelectedTab) is TabState.NeedsCompile)
+        return await DoCodeProcess(async () =>
         {
-            await CompileFromTab(SelectedTab);
-
-            if (GetTabState(SelectedTab) is TabState.Error)
+            if (GetTabState(SelectedTab) is TabState.NeedsCompile)
             {
-                CodeProcessEnd();
-                return false;
+                await CompileFromTab(SelectedTab);
+
+                if (GetTabState(SelectedTab) is TabState.Error)
+                {
+                    return false;
+                }
+
+                if (GetTabState(SelectedTab) is TabState.NeedsDecompile)
+                {
+                    await DecompileToTab(SelectedTab);
+                }
             }
 
-            if (GetTabState(SelectedTab) is TabState.NeedsDecompile)
-            {
-                await DecompileToTab(SelectedTab);
-            }
-        }
-
-        CodeProcessEnd();
-        return true;
+            return true;
+        });
     }
 
     public void CompileAndDecompileCurrent() => CompileAndDecompileTab(SelectedTab, force: true);
@@ -123,31 +127,29 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
 
     public async void CompileAndDecompileTab(Tab tab, bool force = false)
     {
-        await CodeProcessStart();
-
-        if (force || (GetTabState(tab) is TabState.NeedsCompile or TabState.Error))
+        await DoCodeProcess(async () =>
         {
-            await CompileFromTab(tab);
-        }
+            if (force || (GetTabState(tab) is TabState.NeedsCompile or TabState.Error))
+            {
+                await CompileFromTab(tab);
+            }
 
-        if (GetTabState(tab) is TabState.NeedsDecompile)
-        {
-            await DecompileToTab(tab);
-        }
-
-        CodeProcessEnd();
+            if (GetTabState(tab) is TabState.NeedsDecompile)
+            {
+                await DecompileToTab(tab);
+            }
+        });
     }
 
     public async Task DecompileCurrent()
     {
-        await CodeProcessStart();
-
-        if (GetTabState(SelectedTab) is TabState.NeedsDecompile)
+        await DoCodeProcess(async () =>
         {
-            await DecompileToTab(SelectedTab);
-        }
-
-        CodeProcessEnd();
+            if (GetTabState(SelectedTab) is TabState.NeedsDecompile)
+            {
+                await DecompileToTab(SelectedTab);
+            }
+        });
     }
 
     async partial void OnGMLTextDocumentChanged(TextDocument? value)
@@ -155,14 +157,7 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
         if (value is null)
             return;
 
-        if (SelectedTab == Tab.GML)
-        {
-            await CodeProcessStart();
-            await DecompileToTab(Tab.GML);
-            CodeProcessEnd();
-        }
-
-        value.UndoStack.ClearAll();
+        gmlReady.SetResult();
     }
 
     async partial void OnASMTextDocumentChanged(TextDocument? value)
@@ -170,38 +165,50 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
         if (value is null)
             return;
 
-        if (SelectedTab == Tab.ASM)
-        {
-            await CodeProcessStart();
-            await DecompileToTab(Tab.ASM);
-            CodeProcessEnd();
-        }
-
-        value.UndoStack.ClearAll();
+        asmReady.SetResult();
     }
 
     async partial void OnSelectedTabChanged(Tab oldValue, Tab newValue)
     {
-        await CodeProcessStart();
-
-        if (GetTabState(oldValue) is TabState.NeedsCompile)
+        await DoCodeProcess(async () =>
         {
-            await CompileFromTab(oldValue);
-        }
+            if (GetTabState(oldValue) is TabState.NeedsCompile)
+            {
+                await CompileFromTab(oldValue);
+            }
 
-        if (GetTabState(newValue) is TabState.NeedsDecompile)
-        {
-            await DecompileToTab(newValue);
-        }
-
-        CodeProcessEnd();
+            if (GetTabState(newValue) is TabState.NeedsDecompile)
+            {
+                await DecompileToTab(newValue);
+            }
+        });
     }
 
-    async Task CodeProcessStart()
+    async Task DoCodeProcess(Func<Task> funcTask)
     {
-        // TODO: Don't open/close loader window if there's already a code process happening at this point
-        await codeProcessSemaphore.WaitAsync();
+        if (taskQueue.Count == 0)
+            CodeProcessStart();
 
+        await taskQueue.Add(funcTask);
+
+        if (taskQueue.Count == 0)
+            CodeProcessEnd();
+    }
+    async Task<T> DoCodeProcess<T>(Func<Task<T>> funcTask)
+    {
+        if (taskQueue.Count == 0)
+            CodeProcessStart();
+
+        T result = await taskQueue.Add(funcTask);
+
+        if (taskQueue.Count == 0)
+            CodeProcessEnd();
+
+        return result;
+    }
+
+    void CodeProcessStart()
+    {
         lastFocusedElement = MainVM.View!.GetFocusedElement();
 
         IsCodeProcessing = true;
@@ -217,21 +224,12 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
         IsCodeProcessing = false;
 
         lastFocusedElement?.Focus();
-
-        codeProcessSemaphore.Release();
     }
 
     TabState GetTabState(Tab tab) => tab switch
     {
         Tab.GML => GMLTabState,
         Tab.ASM => ASMTabState,
-        _ => throw new NotImplementedException(),
-    };
-
-    TextDocument? GetTabDocument(Tab tab) => tab switch
-    {
-        Tab.GML => GMLTextDocument,
-        Tab.ASM => ASMTextDocument,
         _ => throw new NotImplementedException(),
     };
 
@@ -251,6 +249,8 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
 
     async Task<bool> DecompileToGML()
     {
+        Debug.WriteLine("DecompileToGML");
+
         if (Code.ParentEntry is not null)
             return false;
 
@@ -289,6 +289,8 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
 
     async Task<bool> CompileFromGML()
     {
+        Debug.WriteLine("CompileFromGML");
+
         if (Code.ParentEntry is not null)
             return false;
 
@@ -322,6 +324,8 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
 
     async Task<bool> DecompileToASM()
     {
+        Debug.WriteLine("DecompileToASM");
+
         if (Code.ParentEntry is not null)
             return false;
 
@@ -356,6 +360,8 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
 
     async Task<bool> CompileFromASM()
     {
+        Debug.WriteLine("CompileFromASM");
+
         if (Code.ParentEntry is not null)
             return false;
 
