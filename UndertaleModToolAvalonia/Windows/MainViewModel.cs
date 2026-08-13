@@ -482,13 +482,37 @@ public partial class MainViewModel : ObservableObject
         if (file is null)
             return false;
 
-        using Stream stream = await file.OpenWriteAsync();
+        string path = file.TryGetLocalPath() ?? throw new PlatformNotSupportedException();
+        string tempPath = path + "temp";
 
-        if (await SaveData(stream))
+        bool saved = false;
+
+        try
         {
-            DataPath = file.TryGetLocalPath();
-            lastDataLocation = await file.GetParentAsync();
-            return true;
+            using (FileStream stream = File.Open(tempPath, FileMode.CreateNew, FileAccess.Write))
+            {
+                await SaveData(stream);
+                saved = true;
+
+                stream.Flush(flushToDisk: true);
+            }
+
+            if (saved)
+            {
+                File.Move(tempPath, path, overwrite: true);
+
+                DataPath = path;
+                lastDataLocation = await file.GetParentAsync();
+                return true;
+            }
+            else
+            {
+                File.Delete(tempPath);
+            }
+        }
+        catch (IOException ex)
+        {
+            await View!.MessageDialog($"Error saving data file:\n{ex.Message}");
         }
 
         return false;
