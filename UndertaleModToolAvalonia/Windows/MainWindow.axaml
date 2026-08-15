@@ -40,6 +40,8 @@
             <NativeMenuItem Header="_Scripts">
                 <NativeMenu>
                     <NativeMenuItem Header="Run _other script" Command="{Binding ScriptsRunOtherScript}" />
+                    <NativeMenuItem Header="Reload scripts list" Click="NativeMenuItem_Click_ReloadScriptsList" />
+                    <NativeMenuItemSeparator Header="-" />
                 </NativeMenu>
             </NativeMenuItem>
             <NativeMenuItem Header="_Project">

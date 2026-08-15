@@ -655,8 +655,16 @@ public partial class MainViewModel : ObservableObject
         }
 
         string? filePath = files[0].TryGetLocalPath();
-        await Scripting.RunScript(text, filePath);
 
+        await Scripting.RunScript(text, filePath);
+        CommandTextBoxText = $"{Path.GetFileName(filePath) ?? "Script"} finished!";
+    }
+
+    public async void ScriptsRunScript(string filePath)
+    {
+        string text = File.ReadAllText(filePath);
+
+        await Scripting.RunScript(text, filePath);
         CommandTextBoxText = $"{Path.GetFileName(filePath) ?? "Script"} finished!";
     }
 
