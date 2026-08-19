@@ -48,4 +48,9 @@
     <ItemGroup>
         <ProjectReference Include="..\UndertaleModLib\UndertaleModLib.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <AvaloniaResource Include="Assets\arrow_blue.png" />
+      <AvaloniaResource Include="Assets\arrow_red.png" />
+    </ItemGroup>
 </Project>

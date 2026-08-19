@@ -33,8 +33,38 @@
             <Grid Grid.Column="0" Name="LeftPanel" RowDefinitions="Auto,1*">
                 <StackPanel Grid.Row="0">
                     <StackPanel Orientation="Horizontal">
-                        <Button Command="{Binding TabGoBack}" IsEnabled="{Binding TabSelected.CanGoBack, FallbackValue=False}">←</Button>
-                        <Button Command="{Binding TabGoForward}" IsEnabled="{Binding TabSelected.CanGoForward, FallbackValue=False}">→</Button>
+                        <Button Command="{Binding TabGoBack}" IsEnabled="{Binding TabSelected.CanGoBack, FallbackValue=False}">
+                            <Button.Styles>
+                                <Style Selector="Button Image">
+                                    <Setter Property="Source" Value="avares://UndertaleModToolAvalonia/Assets/arrow_blue.png"/>
+                                </Style>
+                                <Style Selector="Button:pointerover Image">
+                                    <Setter Property="Source" Value="avares://UndertaleModToolAvalonia/Assets/arrow_red.png"/>
+                                </Style>
+                                <Style Selector="Button:disabled Image">
+                                    <Setter Property="Opacity" Value="0.2"/>
+                                </Style>
+                            </Button.Styles>
+                            <Image/>
+                        </Button>
+                        <Button Command="{Binding TabGoForward}" IsEnabled="{Binding TabSelected.CanGoForward, FallbackValue=False}">
+                            <Button.Styles>
+                                <Style Selector="Button Image">
+                                    <Setter Property="Source" Value="avares://UndertaleModToolAvalonia/Assets/arrow_blue.png"/>
+                                </Style>
+                                <Style Selector="Button:pointerover Image">
+                                    <Setter Property="Source" Value="avares://UndertaleModToolAvalonia/Assets/arrow_red.png"/>
+                                </Style>
+                                <Style Selector="Button:disabled Image">
+                                    <Setter Property="Opacity" Value="0.2"/>
+                                </Style>
+                            </Button.Styles>
+                            <Image>
+                                <Image.RenderTransform>
+                                    <ScaleTransform ScaleX="-1" ScaleY="-1"/>
+                                </Image.RenderTransform>
+                            </Image>
+                        </Button>
                     </StackPanel>
                     <Grid ColumnDefinitions="1*,Auto">
                         <TextBox Grid.Column="0" Name="FilterTextBox" PlaceholderText="Filter by name..." Text="{Binding FilterText, Delay=300}"/>
