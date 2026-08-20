@@ -394,7 +394,7 @@
                                 </Grid>
                             </DataTemplate>
                             <DataTemplate DataType="l:UndertaleRoomViewModel+TilesViewModel">
-                                <StackPanel>
+                                <Panel>
                                     <Grid RowDefinitions="Auto,1*"
                                           IsVisible="{Binding $parent[l:MainView].((l:MainViewModel)DataContext).DataVersion,
                                           Converter={StaticResource VersionCompareConverter},
@@ -424,7 +424,7 @@
                                             TileWidth="{Binding #Root.DataContext.GridWidth}"
                                             TileHeight="{Binding #Root.DataContext.GridHeight}"/>
                                     </Grid>
-                                </StackPanel>
+                                </Panel>
                             </DataTemplate>
                             <DataTemplate DataType="undertalem:UndertaleRoom+Tile">
                                 <Grid l:AutoGridBehavior.Enable="True" ColumnDefinitions="1*,2*">
