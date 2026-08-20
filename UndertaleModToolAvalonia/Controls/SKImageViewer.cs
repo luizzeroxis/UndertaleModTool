@@ -92,14 +92,13 @@ public class SKImageViewer : Control
         }
     }
 
-    readonly CustomDrawOperation customDrawOperation;
-
+    readonly MainViewModel mainVM = App.Services.GetRequiredService<MainViewModel>();
+    SKImageDrawOperation? skImageDrawOperation;
     double scaling = 1;
 
     public SKImageViewer()
     {
         ClipToBounds = true;
-        customDrawOperation = new CustomDrawOperation();
     }
 
     void Invalidate()
@@ -107,6 +106,50 @@ public class SKImageViewer : Control
         Size size = GetSize();
         Width = size.Width;
         Height = size.Height;
+
+        skImageDrawOperation = null;
+
+        if (Image is UndertaleTexturePageItem texturePageItem)
+        {
+            if (texturePageItem.TexturePage is not null)
+            {
+                SKImage? image = mainVM.ImageCache.GetCachedImageFromTexturePageItem(texturePageItem);
+
+                if (image is not null)
+                {
+                    skImageDrawOperation = new SKImageDrawOperation(image,
+                        SKRect.Create(texturePageItem.TargetX, texturePageItem.TargetY, texturePageItem.TargetWidth, texturePageItem.TargetHeight));
+                }
+            }
+        }
+        else if (Image is GMImage gmImage)
+        {
+            SKImage image = mainVM.ImageCache.GetCachedImageFromGMImage(gmImage);
+            skImageDrawOperation = new SKImageDrawOperation(image);
+        }
+        else if (Image is UndertaleSprite.MaskEntry maskEntry)
+        {
+            int maskSize = maskEntry.Width * maskEntry.Height;
+            byte[] pixels = new byte[maskSize];
+
+            for (int y = 0; y < maskEntry.Height; y++)
+            {
+                int rowWidth = (maskEntry.Width + 7) / 8;
+                int byteRowIndex = y * rowWidth;
+
+                for (int x = 0; x < maskEntry.Width; x++)
+                {
+                    int i = y * maskEntry.Width + x;
+                    int byteIndex = byteRowIndex + (x / 8);
+                    int bitIndex = x % 8;
+
+                    pixels[i] = (maskEntry.Data[byteIndex] & (1 << (7 - bitIndex))) != 0 ? (byte)255 : (byte)0;
+                }
+            }
+
+            SKImage image = SKImage.FromPixelCopy(new SKImageInfo(maskEntry.Width, maskEntry.Height, SKColorType.Gray8), pixels);
+            skImageDrawOperation = new SKImageDrawOperation(image);
+        }
 
         InvalidateMeasure();
         InvalidateVisual();
@@ -152,31 +195,41 @@ public class SKImageViewer : Control
     public override void Render(DrawingContext context)
     {
         Size size = GetSize();
-        customDrawOperation.Bounds = new Rect(0, 0, size.Width, size.Height);
-        customDrawOperation.Image = Image;
-        customDrawOperation.Scaling = scaling;
 
-        context.Custom(customDrawOperation);
+        using (context.PushTransform(Matrix.CreateScale(scaling, scaling)))
+        {
+            var gridSize = 8;
+            var brush1 = new SolidColorBrush(new Color(255, 102, 102, 102));
+            var brush2 = new SolidColorBrush(new Color(255, 153, 153, 153));
+
+            context.DrawRectangle(brush1, null, new Rect(0, 0, size.Width / scaling, size.Height / scaling));
+
+            for (int x = 0; x < Bounds.Width / scaling / gridSize; x++)
+                for (int y = 0; y < Bounds.Height / scaling / gridSize; y++)
+                {
+                    if ((x + y) % 2 != 0)
+                        context.DrawRectangle(brush2, null, new Rect(x * gridSize, y * gridSize, gridSize, gridSize));
+                }
+
+            if (skImageDrawOperation is not null)
+                context.Custom(skImageDrawOperation);
+        }
     }
 
-    public class CustomDrawOperation : ICustomDrawOperation
+    public class SKImageDrawOperation : ICustomDrawOperation
     {
-        public Rect Bounds { get; set; }
+        SKImage image;
+        SKRect? dest;
 
-        public object? Image;
-        public double Scaling = 1;
+        public Rect Bounds { get; }
 
-        readonly MainViewModel mainVM = App.Services.GetRequiredService<MainViewModel>();
-
-        public CustomDrawOperation()
+        public SKImageDrawOperation(SKImage image, SKRect? dest = null)
         {
+            this.image = image;
+            this.dest = dest;
+
+            Bounds = dest?.ToAvaloniaRect() ?? new Rect(0, 0, image.Width, image.Height);
         }
-
-        public void Dispose() { }
-
-        public bool Equals(ICustomDrawOperation? other) => false;
-
-        public bool HitTest(Point p) => Bounds.Contains(p);
 
         public void Render(ImmediateDrawingContext context)
         {
@@ -189,78 +242,24 @@ public class SKImageViewer : Control
                 using var lease = leaseFeature.Lease();
                 SKCanvas canvas = lease.SkCanvas;
 
-                // Checkered background
-                int gridSize = 8;
-                SKPaint gridColor1 = new SKPaint { Color = new SKColor(102, 102, 102) };
-                SKPaint gridColor2 = new SKPaint { Color = new SKColor(153, 153, 153) };
-
-                canvas.DrawRect(SKRect.Create(0, 0, (float)Bounds.Width, (float)Bounds.Height), gridColor1);
-
-                for (int x = 0; x < Bounds.Width / gridSize; x++)
-                    for (int y = 0; y < Bounds.Height / gridSize; y++)
-                    {
-                        if ((x + y) % 2 != 0)
-                            canvas.DrawRect(SKRect.Create(x * gridSize, y * gridSize, gridSize, gridSize), gridColor2);
-                    }
-
-                canvas.Save();
-                canvas.Scale((float)Scaling);
-
-                // Image
-                RenderImage(canvas);
-
-                canvas.Restore();
+                if (dest is SKRect destSKRect)
+                {
+                    canvas.DrawImage(image, destSKRect, SKSamplingOptions.Default);
+                }
+                else
+                {
+                    canvas.DrawImage(image, 0, 0, SKSamplingOptions.Default);
+                }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 Debugger.Break();
                 throw;
             }
         }
 
-        public void RenderImage(SKCanvas canvas)
-        {
-            if (Image is UndertaleTexturePageItem texturePageItem)
-            {
-                if (texturePageItem.TexturePage is not null)
-                {
-                    SKImage? image = mainVM.ImageCache.GetCachedImageFromTexturePageItem(texturePageItem);
-
-                    if (image is not null)
-                    {
-                        canvas.DrawImage(image, SKRect.Create(texturePageItem.TargetX, texturePageItem.TargetY, texturePageItem.TargetWidth, texturePageItem.TargetHeight), SKSamplingOptions.Default);
-                    }
-                }
-            }
-            else if (Image is GMImage gmImage)
-            {
-                SKImage image = mainVM.ImageCache.GetCachedImageFromGMImage(gmImage);
-                canvas.DrawImage(image, 0, 0, SKSamplingOptions.Default);
-            }
-            else if (Image is UndertaleSprite.MaskEntry maskEntry)
-            {
-                int size = maskEntry.Width * maskEntry.Height;
-                byte[] pixels = new byte[size];
-
-                for (int y = 0; y < maskEntry.Height; y++)
-                {
-                    int rowWidth = (maskEntry.Width + 7) / 8;
-                    int byteRowIndex = y * rowWidth;
-
-                    for (int x = 0; x < maskEntry.Width; x++)
-                    {
-                        int i = y * maskEntry.Width + x;
-                        int byteIndex = byteRowIndex + (x / 8);
-                        int bitIndex = x % 8;
-
-                        pixels[i] = (maskEntry.Data[byteIndex] & (1 << (7 - bitIndex))) != 0 ? (byte)255 : (byte)0;
-                    }
-                }
-
-                SKImage image = SKImage.FromPixelCopy(new SKImageInfo(maskEntry.Width, maskEntry.Height, SKColorType.Gray8), pixels);
-                canvas.DrawImage(image, 0, 0, SKSamplingOptions.Default);
-                image.Dispose();
-            }
-        }
+        public bool Equals(ICustomDrawOperation? other) => false;
+        public bool HitTest(Point p) => Bounds.Contains(p);
+        public void Dispose() { }
     }
 }
