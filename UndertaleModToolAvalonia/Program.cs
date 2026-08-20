@@ -18,24 +18,28 @@ class Program
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args, Avalonia.Controls.ShutdownMode.OnMainWindowClose);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            string localAppData = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UndertaleModToolAvalonia");
-            Directory.CreateDirectory(localAppData);
-
-            File.WriteAllText(Path.Join(localAppData, "CrashLog.txt"), e.ToString());
-
-            // TODO: Figure out a way to actually stop the UI and other threads.
-            SDL.ShowSimpleMessageBox(SDL3.SDL.MessageBoxFlags.Error,
-                "UndertaleModToolAvalonia " + App.VersionString, $"{e}", 0);
+            HandleException(ex);
             throw;
         }
+    }
+
+    public static void HandleException(Exception ex)
+    {
+        string localAppData = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "UndertaleModToolAvalonia");
+        Directory.CreateDirectory(localAppData);
+
+        File.WriteAllText(Path.Join(localAppData, "CrashLog.txt"), ex.ToString());
+
+        SDL.ShowSimpleMessageBox(SDL3.SDL.MessageBoxFlags.Error,
+            "UndertaleModToolAvalonia " + App.VersionString, ex.ToString(), 0);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .With(new SkiaOptions() { MaxGpuResourceSizeBytes = 512 * 1024 * 1024 })
+            .With(new SkiaOptions() { MaxGpuResourceSizeBytes = null })
             .LogToTrace();
 }

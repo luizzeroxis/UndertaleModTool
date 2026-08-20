@@ -38,19 +38,19 @@ public interface IView
 
     public async Task<MessageWindow.Result> MessageDialog(string message, string? title = null, MessageWindow.Buttons buttons = MessageWindow.Buttons.OK)
     {
-        Window window = View.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException();
+        Window window = View.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException("Window not found");
         return await new MessageWindow(message, title, buttons).ShowDialog<MessageWindow.Result>(window);
     }
 
     public async Task<string?> TextBoxDialog(string message, string text = "", string? title = null, bool isMultiline = false, bool isReadOnly = false)
     {
-        Window window = View.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException();
+        Window window = View.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException("Window not found");
         return await new TextBoxWindow(message, text, title, isMultiline, isReadOnly).ShowDialog<string?>(window);
     }
 
     public ILoaderWindow LoaderOpen()
     {
-        Window window = View.FindLogicalAncestorOfType<Window>(true) ?? throw new InvalidOperationException();
+        Window window = View.FindLogicalAncestorOfType<Window>(true) ?? throw new InvalidOperationException("Window not found");
         LoaderWindow loaderWindow = new();
         loaderWindow.ShowDelayed(window);
         return loaderWindow;

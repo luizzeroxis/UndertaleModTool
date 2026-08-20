@@ -429,67 +429,72 @@ public abstract class TilePicker : Control
 
         public Rect Bounds { get; set; }
 
-        public void Dispose() { }
-
-        public bool Equals(ICustomDrawOperation? other) => false;
-
-        public bool HitTest(Point p) => Bounds.Contains(p);
-
         public void Render(ImmediateDrawingContext context)
         {
-            var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
-            if (leaseFeature is null)
-                return;
+            try
+            {
+                var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
+                if (leaseFeature is null)
+                    return;
 
-            using var lease = leaseFeature.Lease();
-            SKCanvas canvas = lease.SkCanvas;
+                using var lease = leaseFeature.Lease();
+                SKCanvas canvas = lease.SkCanvas;
 
-            // Checkered background
+                // Checkered background
 
-            int gridSize = 8;
-            SKPaint gridColor1 = new() { Color = new SKColor(102, 102, 102) };
-            SKPaint gridColor2 = new() { Color = new SKColor(153, 153, 153) };
+                int gridSize = 8;
+                SKPaint gridColor1 = new() { Color = new SKColor(102, 102, 102) };
+                SKPaint gridColor2 = new() { Color = new SKColor(153, 153, 153) };
 
-            canvas.DrawRect(SKRect.Create(0, 0, (float)Bounds.Width, (float)Bounds.Height), gridColor1);
+                canvas.DrawRect(SKRect.Create(0, 0, (float)Bounds.Width, (float)Bounds.Height), gridColor1);
 
-            for (int x = 0; x < Bounds.Width / gridSize; x++)
-                for (int y = 0; y < Bounds.Height / gridSize; y++)
+                for (int x = 0; x < Bounds.Width / gridSize; x++)
+                    for (int y = 0; y < Bounds.Height / gridSize; y++)
+                    {
+                        if ((x + y) % 2 != 0)
+                            canvas.DrawRect(SKRect.Create(x * gridSize, y * gridSize, gridSize, gridSize), gridColor2);
+                    }
+
+                // Tiles
+
+                SKImage? image = mainVM.ImageCache.GetCachedImageFromTexturePageItem(TexturePageItem);
+
+                if (image is null)
+                    return;
+
+                selectedTileRect = null;
+
+                canvas.Save();
+                canvas.Translate(Translation.ToSKPoint());
+                canvas.Scale((float)Scaling);
+
+                DrawTiles(canvas, image);
+
+                if (selectedTileRect is SKRect rect)
                 {
-                    if ((x + y) % 2 != 0)
-                        canvas.DrawRect(SKRect.Create(x * gridSize, y * gridSize, gridSize, gridSize), gridColor2);
+                    float s = 1 / (float)Scaling;
+                    rect.Right -= s;
+                    rect.Bottom -= s;
+
+                    rect.Inflate(s, s);
+                    canvas.DrawRect(rect, new SKPaint() { Style = SKPaintStyle.Stroke, Color = SelectedColor });
+
+                    rect.Inflate(s, s);
+                    canvas.DrawRect(rect, new SKPaint() { Style = SKPaintStyle.Stroke, Color = SelectedColor });
                 }
 
-            // Tiles
-
-            SKImage? image = mainVM.ImageCache.GetCachedImageFromTexturePageItem(TexturePageItem);
-
-            if (image is null)
-                return;
-
-            selectedTileRect = null;
-
-            canvas.Save();
-            canvas.Translate(Translation.ToSKPoint());
-            canvas.Scale((float)Scaling);
-
-            DrawTiles(canvas, image);
-
-            if (selectedTileRect is SKRect rect)
-            {
-                float s = 1 / (float)Scaling;
-                rect.Right -= s;
-                rect.Bottom -= s;
-
-                rect.Inflate(s, s);
-                canvas.DrawRect(rect, new SKPaint() { Style = SKPaintStyle.Stroke, Color = SelectedColor });
-
-                rect.Inflate(s, s);
-                canvas.DrawRect(rect, new SKPaint() { Style = SKPaintStyle.Stroke, Color = SelectedColor });
+                canvas.Restore();
             }
-
-            canvas.Restore();
+            catch (Exception ex)
+            {
+                Program.HandleException(ex);
+            }
         }
 
         public abstract void DrawTiles(SKCanvas canvas, SKImage image);
+
+        public bool Equals(ICustomDrawOperation? other) => false;
+        public bool HitTest(Point p) => Bounds.Contains(p);
+        public void Dispose() { }
     }
 }

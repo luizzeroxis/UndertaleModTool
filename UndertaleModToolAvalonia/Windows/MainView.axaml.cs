@@ -38,7 +38,7 @@ public partial class MainView : UserControl, IView
 
     public async Task OpenSettingsDialog(IServiceProvider serviceProvider)
     {
-        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException();
+        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException("Window not found");
         await new SettingsWindow()
         {
             DataContext = new SettingsViewModel(serviceProvider),
@@ -47,7 +47,7 @@ public partial class MainView : UserControl, IView
 
     public void OpenSearchInCode(IServiceProvider serviceProvider)
     {
-        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException();
+        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException("Window not found");
         new SearchInCodeWindow()
         {
             DataContext = new SearchInCodeViewModel(serviceProvider),
@@ -56,7 +56,7 @@ public partial class MainView : UserControl, IView
 
     public void OpenFindReferences(IServiceProvider serviceProvider, UndertaleResource? resource = null)
     {
-        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException();
+        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException("Window not found");
         new FindReferencesWindow()
         {
             DataContext = new FindReferencesViewModel(serviceProvider, resource),
@@ -65,7 +65,7 @@ public partial class MainView : UserControl, IView
 
     public void OpenProjectAssets(IServiceProvider serviceProvider)
     {
-        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException();
+        Window window = this.FindLogicalAncestorOfType<Window>() ?? throw new InvalidOperationException("Window not found");
 
         if (projectAssetsWindow is not null)
         {

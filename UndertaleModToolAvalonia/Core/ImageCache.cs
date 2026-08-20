@@ -28,7 +28,7 @@ public class ImageCache
 
         if (image is null)
         {
-            throw new Exception("Could not create image");
+            throw new InvalidOperationException("Could not create image");
         }
 
         return image;

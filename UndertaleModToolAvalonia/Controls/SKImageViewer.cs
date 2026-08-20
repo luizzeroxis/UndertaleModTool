@@ -216,8 +216,9 @@ public class SKImageViewer : Control
         }
     }
 
-    public class SKImageDrawOperation : ICustomDrawOperation
+    class SKImageDrawOperation : ICustomDrawOperation
     {
+        bool enableRender = true;
         SKImage image;
         SKRect? dest;
 
@@ -233,6 +234,9 @@ public class SKImageViewer : Control
 
         public void Render(ImmediateDrawingContext context)
         {
+            if (!enableRender)
+                return;
+
             try
             {
                 var leaseFeature = context.TryGetFeature<ISkiaSharpApiLeaseFeature>();
@@ -253,8 +257,8 @@ public class SKImageViewer : Control
             }
             catch (Exception ex)
             {
-                Debugger.Break();
-                throw;
+                enableRender = false;
+                Program.HandleException(ex);
             }
         }
 

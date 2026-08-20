@@ -43,6 +43,8 @@ public class UndertaleRoomEditor : Control
 
     UndertaleRoomViewModel? vm;
 
+    bool enableRender = true;
+
     readonly RoomRenderer rendererInstance = new();
 
     double customDrawOperationTime;
@@ -629,8 +631,6 @@ public class UndertaleRoomEditor : Control
 
     class CustomDrawOperation : ICustomDrawOperation
     {
-        public Rect Bounds { get; set; }
-
         readonly UndertaleRoomEditor editor;
 
         readonly UndertaleRoomViewModel vm;
@@ -653,6 +653,8 @@ public class UndertaleRoomEditor : Control
         readonly uint gridHeight;
 
         readonly SKColor selectedColor;
+
+        public Rect Bounds { get; set; }
 
         public CustomDrawOperation(UndertaleRoomEditor editor)
         {
@@ -683,14 +685,11 @@ public class UndertaleRoomEditor : Control
             selectedColor = editor.GetSolidColorBrushResource("SystemControlHighlightAccentBrush").Color.ToSKColor().WithAlpha(128);
         }
 
-        public void Dispose() { }
-
-        public bool Equals(ICustomDrawOperation? other) => false;
-
-        public bool HitTest(Point p) => Bounds.Contains(p);
-
         public void Render(ImmediateDrawingContext context)
         {
+            if (!editor.enableRender)
+                return;
+
             try
             {
                 Stopwatch stopWatch = new();
@@ -768,12 +767,16 @@ public class UndertaleRoomEditor : Control
                 stopWatch.Stop();
                 editor.customDrawOperationTime = Math.Ceiling(stopWatch.Elapsed.TotalMilliseconds);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                Debugger.Break();
-                throw;
+                editor.enableRender = false;
+                Program.HandleException(ex);
             }
         }
+
+        public bool Equals(ICustomDrawOperation? other) => false;
+        public bool HitTest(Point p) => Bounds.Contains(p);
+        public void Dispose() { }
     }
 
     public class Updater()
