@@ -117,7 +117,7 @@ public partial class MainViewModel : ObservableObject
 
         _ = TabOpen(new DescriptionViewModel(
             "Welcome to UndertaleModTool!",
-            "Open a data.win file to get started, then double click on the items on the left to view them."));
+            "Open a data file to get started, then double click on the items on the left to view them."));
     }
 
     public void Initialize()
@@ -992,43 +992,51 @@ public partial class MainViewModel : ObservableObject
 
     public async Task<TabItemViewModel?> TabOpen(object? item, bool inNewTab = false)
     {
-        if (Data is null)
-            return null;
-
         ITabContent? content = item switch
         {
             DescriptionViewModel vm => vm,
-            "GeneralInfo" => new GeneralInfoViewModel(Data),
-            "GlobalInitScripts" => new GlobalInitScriptsViewModel(Data.FORM.GLOB.List),
-            "GameEndScripts" => new GameEndScriptsViewModel(Data.FORM.GMEN.List),
-            UndertaleAudioGroup r => new UndertaleAudioGroupViewModel(r),
-            UndertaleSound r => new UndertaleSoundViewModel(r, ServiceProvider),
-            UndertaleSprite r => new UndertaleSpriteViewModel(r, ServiceProvider),
-            UndertaleBackground r => new UndertaleBackgroundViewModel(r),
-            UndertalePath r => new UndertalePathViewModel(r),
-            UndertaleScript r => new UndertaleScriptViewModel(r),
-            UndertaleShader r => new UndertaleShaderViewModel(r, ServiceProvider),
-            UndertaleFont r => new UndertaleFontViewModel(r),
-            UndertaleTimeline r => new UndertaleTimelineViewModel(r),
-            UndertaleGameObject r => new UndertaleGameObjectViewModel(r, ServiceProvider),
-            UndertaleRoom r => new UndertaleRoomViewModel(r, ServiceProvider),
-            "Extensions" => new UndertaleExtensionChunkViewModel(Data.FORM.EXTN),
-            UndertaleExtension r => new UndertaleExtensionViewModel(r, ServiceProvider),
-            UndertaleTexturePageItem r => new UndertaleTexturePageItemViewModel(r, ServiceProvider),
-            UndertaleCode r => new UndertaleCodeViewModel(r, ServiceProvider),
-            UndertaleVariable r => new UndertaleVariableViewModel(r),
-            UndertaleFunction r => new UndertaleFunctionViewModel(r),
-            UndertaleCodeLocals r => new UndertaleCodeLocalsViewModel(r),
-            UndertaleString r => new UndertaleStringViewModel(r),
-            UndertaleEmbeddedTexture r => new UndertaleEmbeddedTextureViewModel(r, ServiceProvider),
-            UndertaleEmbeddedAudio r => new UndertaleEmbeddedAudioViewModel(r, ServiceProvider),
-            UndertaleTextureGroupInfo r => new UndertaleTextureGroupInfoViewModel(r),
-            UndertaleEmbeddedImage r => new UndertaleEmbeddedImageViewModel(r),
-            UndertaleAnimationCurve r => new UndertaleAnimationCurveViewModel(r),
-            UndertaleParticleSystem r => new UndertaleParticleSystemViewModel(r),
-            UndertaleParticleSystemEmitter r => new UndertaleParticleSystemEmitterViewModel(r),
             _ => null,
         };
+
+        if (content is null)
+        {
+            if (Data is null)
+                return null;
+
+            content = item switch
+            {
+                "GeneralInfo" => new GeneralInfoViewModel(Data),
+                "GlobalInitScripts" => new GlobalInitScriptsViewModel(Data.FORM.GLOB.List),
+                "GameEndScripts" => new GameEndScriptsViewModel(Data.FORM.GMEN.List),
+                UndertaleAudioGroup r => new UndertaleAudioGroupViewModel(r),
+                UndertaleSound r => new UndertaleSoundViewModel(r, ServiceProvider),
+                UndertaleSprite r => new UndertaleSpriteViewModel(r, ServiceProvider),
+                UndertaleBackground r => new UndertaleBackgroundViewModel(r),
+                UndertalePath r => new UndertalePathViewModel(r),
+                UndertaleScript r => new UndertaleScriptViewModel(r),
+                UndertaleShader r => new UndertaleShaderViewModel(r, ServiceProvider),
+                UndertaleFont r => new UndertaleFontViewModel(r),
+                UndertaleTimeline r => new UndertaleTimelineViewModel(r),
+                UndertaleGameObject r => new UndertaleGameObjectViewModel(r, ServiceProvider),
+                UndertaleRoom r => new UndertaleRoomViewModel(r, ServiceProvider),
+                "Extensions" => new UndertaleExtensionChunkViewModel(Data.FORM.EXTN),
+                UndertaleExtension r => new UndertaleExtensionViewModel(r, ServiceProvider),
+                UndertaleTexturePageItem r => new UndertaleTexturePageItemViewModel(r, ServiceProvider),
+                UndertaleCode r => new UndertaleCodeViewModel(r, ServiceProvider),
+                UndertaleVariable r => new UndertaleVariableViewModel(r),
+                UndertaleFunction r => new UndertaleFunctionViewModel(r),
+                UndertaleCodeLocals r => new UndertaleCodeLocalsViewModel(r),
+                UndertaleString r => new UndertaleStringViewModel(r),
+                UndertaleEmbeddedTexture r => new UndertaleEmbeddedTextureViewModel(r, ServiceProvider),
+                UndertaleEmbeddedAudio r => new UndertaleEmbeddedAudioViewModel(r, ServiceProvider),
+                UndertaleTextureGroupInfo r => new UndertaleTextureGroupInfoViewModel(r),
+                UndertaleEmbeddedImage r => new UndertaleEmbeddedImageViewModel(r),
+                UndertaleAnimationCurve r => new UndertaleAnimationCurveViewModel(r),
+                UndertaleParticleSystem r => new UndertaleParticleSystemViewModel(r),
+                UndertaleParticleSystemEmitter r => new UndertaleParticleSystemEmitterViewModel(r),
+                _ => null,
+            };
+        }
 
         if (content is not null)
         {
