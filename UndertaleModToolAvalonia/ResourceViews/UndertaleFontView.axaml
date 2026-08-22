@@ -9,6 +9,7 @@
              x:DataType="l:UndertaleFontViewModel">
     <UserControl.Resources>
         <l:VersionCompareConverter x:Key="VersionCompareConverter" />
+        <l:CodePointToCharConverter x:Key="CodePointToCharConverter" />
     </UserControl.Resources>
 
     <ScrollViewer>
@@ -89,11 +90,17 @@
             <Label>Glyphs</Label>
             <l:EditableDataGrid ItemsSource="{Binding Font.Glyphs}" ItemFactory="{Binding CreateGlyph}" SelectionChanged="{Binding GlyphsSelectedChanged}">
                 <l:EditableDataGrid.Columns>
-                    <DataGridTemplateColumn Header="Character" Width="4*">
+                    <DataGridTemplateColumn Header="Code point" Width="3*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
                                 <TextBox Text="{Binding Character}" />
-                                <!-- TODO: Character convert -->
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTemplateColumn Header="Character" Width="3*">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate DataType="undertalem:UndertaleFont+Glyph">
+                                <TextBox Text="{Binding Character, Converter={StaticResource CodePointToCharConverter}}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -125,7 +132,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Width="4*">
+                    <DataGridTemplateColumn Width="3*">
                         <DataGridTemplateColumn.Header>
                             <TextBlock Text="Shift" ToolTip.Tip="The number of pixels to shift right when advancing to the next character." />
                         </DataGridTemplateColumn.Header>
@@ -135,7 +142,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Width="4*">
+                    <DataGridTemplateColumn Width="3*">
                         <DataGridTemplateColumn.Header>
                             <TextBlock Text="Offset" ToolTip.Tip="The number of pixels to horizontally offset the rendering of the glyph." />
                         </DataGridTemplateColumn.Header>
