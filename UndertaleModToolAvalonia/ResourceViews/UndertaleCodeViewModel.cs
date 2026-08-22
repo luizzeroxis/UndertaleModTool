@@ -157,7 +157,7 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
         if (value is null)
             return;
 
-        gmlReady.SetResult();
+        gmlReady.TrySetResult();
     }
 
     async partial void OnASMTextDocumentChanged(TextDocument? value)
@@ -165,7 +165,7 @@ public partial class UndertaleCodeViewModel : ObservableObject, IUndertaleResour
         if (value is null)
             return;
 
-        asmReady.SetResult();
+        asmReady.TrySetResult();
     }
 
     async partial void OnSelectedTabChanged(Tab oldValue, Tab newValue)
