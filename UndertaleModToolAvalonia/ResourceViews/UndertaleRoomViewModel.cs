@@ -134,7 +134,7 @@ public partial class UndertaleRoomViewModel : ObservableObject, IUndertaleResour
 
         Layer layer = new()
         {
-            LayerName = MainVM.Data!.Strings.MakeString(name, createNew: true),
+            LayerName = MainVM.Data!.Strings.MakeString(name),
             LayerId = layerId,
             LayerDepth = (int)layerDepth,
             LayerType = type,

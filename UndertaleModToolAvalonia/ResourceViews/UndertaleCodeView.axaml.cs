@@ -477,6 +477,8 @@ public partial class UndertaleCodeView : UserControl
                         possibleObjects.Add(data.Sequences[id]);
                     if (id < data.ParticleSystems?.Count)
                         possibleObjects.Add(data.ParticleSystems[id]);
+                    if (id < data.AudioGroups?.Count)
+                        possibleObjects.Add(data.AudioGroups[id]);
                 }
 
                 contextMenu.Items.Clear();

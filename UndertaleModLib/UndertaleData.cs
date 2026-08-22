@@ -766,7 +766,7 @@ namespace UndertaleModLib
                     UndertaleTexturePageItem => new UndertaleString("PageItem " + list.Count),
                     UndertaleEmbeddedAudio => new UndertaleString("EmbeddedSound " + list.Count),
                     UndertaleEmbeddedTexture => new UndertaleString("Texture " + list.Count),
-                    _ => Strings.MakeString(resourceName, createNew: true),
+                    _ => Strings.MakeString(resourceName),
                 };
 
                 namedResource.Name = name;
@@ -798,14 +798,14 @@ namespace UndertaleModLib
                 }
                 else
                 {
-                    room.Caption = Strings.MakeString("", createNew: true);
+                    room.Caption = Strings.MakeString("");
                 }
             }
             else if (resource is UndertaleScript script)
             {
                 if (IsVersionAtLeast(2, 3))
                 {
-                    script.Code = UndertaleCode.CreateEmptyEntry(this, Strings.MakeString($"gml_GlobalScript_{script.Name.Content}", createNew: true));
+                    script.Code = UndertaleCode.CreateEmptyEntry(this, Strings.MakeString($"gml_GlobalScript_{script.Name.Content}"));
                     if (GlobalInitScripts is IList<UndertaleGlobalInit> globalInitScripts)
                     {
                         globalInitScripts.Add(new UndertaleGlobalInit()
@@ -816,7 +816,7 @@ namespace UndertaleModLib
                 }
                 else
                 {
-                    script.Code = UndertaleCode.CreateEmptyEntry(this, Strings.MakeString($"gml_Script_{script.Name.Content}", createNew: true));
+                    script.Code = UndertaleCode.CreateEmptyEntry(this, Strings.MakeString($"gml_Script_{script.Name.Content}"));
                 }
 
                 newResources.Add(script.Code);
@@ -833,8 +833,12 @@ namespace UndertaleModLib
                     code.WeirdLocalFlag = true;
                 }
             }
-            else if (resource is UndertaleExtension)
+            else if (resource is UndertaleExtension extension)
             {
+                extension.FolderName = Strings.MakeString("");
+                extension.ClassName = Strings.MakeString("");
+                extension.Version = Strings.MakeString("1.0.0");
+
                 if (GeneralInfo?.Major >= 2 ||
                     (GeneralInfo?.Major == 1 && GeneralInfo?.Build >= 1773) ||
                     (GeneralInfo?.Major == 1 && GeneralInfo?.Build == 1539))
@@ -845,12 +849,12 @@ namespace UndertaleModLib
             }
             else if (resource is UndertaleShader shader)
             {
-                shader.GLSL_ES_Vertex = Strings.MakeString("", createNew: true);
-                shader.GLSL_ES_Fragment = Strings.MakeString("", createNew: true);
-                shader.GLSL_Vertex = Strings.MakeString("", createNew: true);
-                shader.GLSL_Fragment = Strings.MakeString("", createNew: true);
-                shader.HLSL9_Vertex = Strings.MakeString("", createNew: true);
-                shader.HLSL9_Fragment = Strings.MakeString("", createNew: true);
+                shader.GLSL_ES_Vertex = Strings.MakeString("");
+                shader.GLSL_ES_Fragment = Strings.MakeString("");
+                shader.GLSL_Vertex = Strings.MakeString("");
+                shader.GLSL_Fragment = Strings.MakeString("");
+                shader.HLSL9_Vertex = Strings.MakeString("");
+                shader.HLSL9_Fragment = Strings.MakeString("");
             }
 
             return newResources;
