@@ -3,27 +3,18 @@ using System.IO;
 using System.Text.Json;
 using Avalonia.Markup.Xaml;
 using Avalonia.Styling;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace UndertaleModToolAvalonia;
 
 public partial class SettingsFile
 {
-    public MainViewModel MainVM = null!;
+    static readonly string roamingAppData = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "UndertaleModToolAvalonia");
 
     public SettingsFile() { }
-    public SettingsFile(IServiceProvider serviceProvider)
-    {
-        MainVM = serviceProvider.GetRequiredService<MainViewModel>();
-    }
 
-    public static SettingsFile Load(IServiceProvider serviceProvider)
+    public static (SettingsFile settingsFile, Exception? exception) Load()
     {
-        MainViewModel mainVM = serviceProvider.GetRequiredService<MainViewModel>();
-
         SettingsFile? settings = null;
-
-        string roamingAppData = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "UndertaleModToolAvalonia");
 
         // Load Settings.json
         string settingsPath = Path.Join(roamingAppData, "Settings.json");
@@ -40,47 +31,50 @@ public partial class SettingsFile
 
                 if (settings is not null)
                 {
-                    // Check for upgrades here.
-                    settings.MainVM = mainVM;
+                    // NOTE: Check for upgrades here.
                     settings.Version = App.VersionString;
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                mainVM.LazyErrorMessages.Add($"Error when loading settings file:\n{e.Message}\nDefault settings loaded.");
+                return (new SettingsFile(), ex);
             }
         }
 
-        settings ??= new SettingsFile(serviceProvider);
+        settings ??= new SettingsFile();
+        return (settings, null);
+    }
 
+    public static Exception? LoadStyles()
+    {
         // Load Styles.xaml
         string stylesPath = Path.Join(roamingAppData, "Styles.xaml");
 
         if (File.Exists(stylesPath))
         {
+            Styles styles;
             try
             {
                 string xaml = File.ReadAllText(stylesPath);
-                Styles styles = AvaloniaRuntimeXamlLoader.Parse<Styles>(xaml);
-
-                if (App.CurrentCustomStyles is not null)
-                    App.Current!.Styles.Remove(App.CurrentCustomStyles);
-
-                App.CurrentCustomStyles = styles;
-                App.Current!.Styles.Add(styles);
+                styles = AvaloniaRuntimeXamlLoader.Parse<Styles>(xaml);
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                mainVM.LazyErrorMessages.Add($"Error when loading styles file:\n{e.Message}");
+                return ex;
             }
+
+            if (App.CurrentCustomStyles is not null)
+                App.Current!.Styles.Remove(App.CurrentCustomStyles);
+
+            App.CurrentCustomStyles = styles;
+            App.Current!.Styles.Add(styles);
         }
 
-        return settings;
+        return null;
     }
 
-    public async void Save()
+    public Exception? Save()
     {
-        string roamingAppData = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "UndertaleModToolAvalonia");
         Directory.CreateDirectory(roamingAppData);
 
         string json = JsonSerializer.Serialize(this, new JsonSerializerOptions()
@@ -92,10 +86,11 @@ public partial class SettingsFile
         {
             File.WriteAllText(Path.Join(roamingAppData, "Settings.json"), json);
         }
-        catch (Exception e)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            await MainVM.View!.MessageDialog($"Error when saving settings file: {e.Message}");
+            return ex;
         }
+        return null;
     }
 
     public string Version { get; set; } = App.VersionString;

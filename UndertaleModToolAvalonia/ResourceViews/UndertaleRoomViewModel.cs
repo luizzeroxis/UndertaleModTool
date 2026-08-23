@@ -78,10 +78,10 @@ public partial class UndertaleRoomViewModel : ObservableObject, IUndertaleResour
 
         Room = room;
 
-        IsSelectAnyLayerEnabled = MainVM.Settings!.EnableSelectAnyLayerByDefault;
-        IsGridEnabled = MainVM.Settings!.EnableRoomGridByDefault;
-        GridWidth = MainVM.Settings!.DefaultRoomGridWidth;
-        GridHeight = MainVM.Settings!.DefaultRoomGridHeight;
+        IsSelectAnyLayerEnabled = MainVM.Settings.EnableSelectAnyLayerByDefault;
+        IsGridEnabled = MainVM.Settings.EnableRoomGridByDefault;
+        GridWidth = MainVM.Settings.DefaultRoomGridWidth;
+        GridHeight = MainVM.Settings.DefaultRoomGridHeight;
 
         bool isGMS2 = MainVM.Data!.IsVersionAtLeast(2);
 

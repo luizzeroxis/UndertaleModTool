@@ -76,7 +76,7 @@ public partial class UndertaleCodeView : UserControl
 
             vm.PropertyChanged += DataContext_PropertyChanged;
 
-            if (vm.MainVM.Settings!.EnableSyntaxHighlighting)
+            if (vm.MainVM.Settings.EnableSyntaxHighlighting)
             {
                 // Reload highlighting if major version changed
                 if (HighlightingMajorVersion != vm.MainVM.Data!.GeneralInfo.Major)
@@ -190,7 +190,7 @@ public partial class UndertaleCodeView : UserControl
         NamedResourcesCache.Clear();
         codeLocalsCache.Clear();
 
-        if (!vm.MainVM.Settings!.EnableSyntaxHighlighting)
+        if (!vm.MainVM.Settings.EnableSyntaxHighlighting)
             return;
 
         UndertaleData? data = vm.MainVM.Data;
@@ -325,7 +325,7 @@ public partial class UndertaleCodeView : UserControl
         if (e.NavigationMethod == NavigationMethod.Unspecified)
             return;
 
-        if (vm.GMLFocused && vm.MainVM.Settings!.AutomaticallyCompileAndDecompileCodeOnLostFocus)
+        if (vm.GMLFocused && vm.MainVM.Settings.AutomaticallyCompileAndDecompileCodeOnLostFocus)
         {
             vm.GMLFocused = false;
             vm.CompileAndDecompileTab(Tab.GML);
@@ -340,7 +340,7 @@ public partial class UndertaleCodeView : UserControl
         if (e.NavigationMethod == NavigationMethod.Unspecified)
             return;
 
-        if (vm.ASMFocused && vm.MainVM.Settings!.AutomaticallyCompileAndDecompileCodeOnLostFocus)
+        if (vm.ASMFocused && vm.MainVM.Settings.AutomaticallyCompileAndDecompileCodeOnLostFocus)
         {
             vm.ASMFocused = false;
             vm.CompileAndDecompileTab(Tab.ASM);

@@ -32,7 +32,7 @@ public partial class MainViewModel : ObservableObject
     public List<string> LazyErrorMessages = [];
 
     // Settings
-    public SettingsFile? Settings { get; set; }
+    public SettingsFile Settings { get; init; }
 
     // Scripting
     public Scripting Scripting = null!;
@@ -104,6 +104,10 @@ public partial class MainViewModel : ObservableObject
     {
         ServiceProvider = serviceProvider;
 
+        Settings = LoadSettings();
+
+        WindowState = Settings.StartMaximized ? WindowState.Maximized : WindowState.Normal;
+
         AudioPlayer.Init(f => Dispatcher.UIThread.Post(f));
 
         DataExplorer = new(this);
@@ -114,12 +118,27 @@ public partial class MainViewModel : ObservableObject
             "Open a data file to get started, then double click on the items on the left to view them."));
     }
 
+    SettingsFile LoadSettings()
+    {
+        (SettingsFile settingsFile, Exception? ex) = SettingsFile.Load();
+
+        if (ex is not null)
+        {
+            LazyErrorMessages.Add($"Error when loading settings file:\n{ex.Message}\nDefault settings loaded.");
+        }
+
+        Exception? stylesEx = SettingsFile.LoadStyles();
+        if (stylesEx is not null)
+        {
+            LazyErrorMessages.Add($"Error when loading styles file:\n{stylesEx.Message}");
+        }
+
+        return settingsFile;
+    }
+
     public void Initialize()
     {
-        Settings = SettingsFile.Load(ServiceProvider);
         Scripting = new(ServiceProvider);
-
-        WindowState = Settings.StartMaximized ? WindowState.Maximized : WindowState.Normal;
     }
 
     public async void OnLoaded()
@@ -184,8 +203,8 @@ public partial class MainViewModel : ObservableObject
             if (Data.GeneralInfo is not null)
                 Data.GeneralInfo.PropertyChanged += DataGeneralInfoChangedHandler;
 
-            Data.ToolInfo.InstanceIdPrefix = () => Settings?.InstanceIdPrefix;
-            Data.ToolInfo.DecompilerSettings = Settings?.DecompileSettings;
+            Data.ToolInfo.InstanceIdPrefix = () => Settings.InstanceIdPrefix;
+            Data.ToolInfo.DecompilerSettings = Settings.DecompileSettings;
         }
 
         UpdateVersion();
@@ -774,7 +793,7 @@ public partial class MainViewModel : ObservableObject
         try
         {
             projectContext = ProjectContext.CreateWithDataFilePaths(DataPath, destinationDataPath, projectFilePath);
-            projectContext.Import(Data, Settings!.EnableProjectBackup ? null : new GameFileNoOpBackup(), Dispatcher.UIThread.Invoke);
+            projectContext.Import(Data, Settings.EnableProjectBackup ? null : new GameFileNoOpBackup(), Dispatcher.UIThread.Invoke);
         }
         catch (ProjectException e)
         {
@@ -839,7 +858,7 @@ public partial class MainViewModel : ObservableObject
         try
         {
             projectContext = ProjectContext.CreateWithDataFilePaths(sourceDataPath, destinationDataPath, projectFilePath);
-            projectContext.Import(Data, Settings!.EnableProjectBackup ? null : new GameFileNoOpBackup(), Dispatcher.UIThread.Invoke);
+            projectContext.Import(Data, Settings.EnableProjectBackup ? null : new GameFileNoOpBackup(), Dispatcher.UIThread.Invoke);
         }
         catch (ProjectException e)
         {
@@ -950,7 +969,7 @@ public partial class MainViewModel : ObservableObject
             }
         }
 
-        if (Settings!.OpenNewResourceAfterCreatingIt)
+        if (Settings.OpenNewResourceAfterCreatingIt)
         {
             _ = TabOpen(res, inNewTab: true);
         }
