@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -80,13 +79,7 @@ public partial class MainViewModel : ObservableObject
     public partial bool IsSorted { get; set; } = false;
 
     // Tabs
-    public ObservableCollection<TabItemViewModel> Tabs { get; set; } = [];
-
-    [ObservableProperty]
-    public partial TabItemViewModel? TabSelected { get; set; }
-
-    [ObservableProperty]
-    public partial int TabSelectedIndex { get; set; }
+    public TabsViewModel Tabs { get; set; }
 
     [ObservableProperty]
     public partial bool TabIsMarkedForExport { get; set; } = false;
@@ -114,6 +107,7 @@ public partial class MainViewModel : ObservableObject
         AudioPlayer.Init(f => Dispatcher.UIThread.Post(f));
 
         DataExplorer = new(this);
+        Tabs = new(this);
 
         _ = TabOpen(new DescriptionViewModel(
             "Welcome to UndertaleModTool!",
@@ -200,8 +194,7 @@ public partial class MainViewModel : ObservableObject
 
         if (Data is not null)
         {
-            if (View is MainView mainView)
-                mainView.ExpandItemOnTree(DataExplorer.TreeDataGridData[0]);
+            DataExplorer.OnExpandItemOnTree?.Invoke(DataExplorer.TreeDataGridData[0]);
         }
     }
 
@@ -378,7 +371,7 @@ public partial class MainViewModel : ObservableObject
             }
         }
 
-        TabCloseAllWithoutSaving();
+        Tabs.TabCloseAllWithoutSaving();
 
         ClearProject();
 
@@ -449,7 +442,7 @@ public partial class MainViewModel : ObservableObject
         if (Data is null)
             return false;
 
-        if (!await TabSaveAll())
+        if (!await Tabs.TabSaveAll())
             return false;
 
         if (Project is not null)
@@ -990,186 +983,13 @@ public partial class MainViewModel : ObservableObject
             mainView.OpenFindReferences(ServiceProvider, resource);
     }
 
-    public async Task<TabItemViewModel?> TabOpen(object? item, bool inNewTab = false)
-    {
-        ITabContent? content = item switch
-        {
-            DescriptionViewModel vm => vm,
-            _ => null,
-        };
-
-        if (content is null)
-        {
-            if (Data is null)
-                return null;
-
-            content = item switch
-            {
-                "GeneralInfo" => new GeneralInfoViewModel(Data),
-                "GlobalInitScripts" => new GlobalInitScriptsViewModel(Data.FORM.GLOB.List),
-                "GameEndScripts" => new GameEndScriptsViewModel(Data.FORM.GMEN.List),
-                UndertaleAudioGroup r => new UndertaleAudioGroupViewModel(r),
-                UndertaleSound r => new UndertaleSoundViewModel(r, ServiceProvider),
-                UndertaleSprite r => new UndertaleSpriteViewModel(r, ServiceProvider),
-                UndertaleBackground r => new UndertaleBackgroundViewModel(r),
-                UndertalePath r => new UndertalePathViewModel(r),
-                UndertaleScript r => new UndertaleScriptViewModel(r),
-                UndertaleShader r => new UndertaleShaderViewModel(r, ServiceProvider),
-                UndertaleFont r => new UndertaleFontViewModel(r),
-                UndertaleTimeline r => new UndertaleTimelineViewModel(r),
-                UndertaleGameObject r => new UndertaleGameObjectViewModel(r, ServiceProvider),
-                UndertaleRoom r => new UndertaleRoomViewModel(r, ServiceProvider),
-                "Extensions" => new UndertaleExtensionChunkViewModel(Data.FORM.EXTN),
-                UndertaleExtension r => new UndertaleExtensionViewModel(r, ServiceProvider),
-                UndertaleTexturePageItem r => new UndertaleTexturePageItemViewModel(r, ServiceProvider),
-                UndertaleCode r => new UndertaleCodeViewModel(r, ServiceProvider),
-                UndertaleVariable r => new UndertaleVariableViewModel(r),
-                UndertaleFunction r => new UndertaleFunctionViewModel(r),
-                UndertaleCodeLocals r => new UndertaleCodeLocalsViewModel(r),
-                UndertaleString r => new UndertaleStringViewModel(r),
-                UndertaleEmbeddedTexture r => new UndertaleEmbeddedTextureViewModel(r, ServiceProvider),
-                UndertaleEmbeddedAudio r => new UndertaleEmbeddedAudioViewModel(r, ServiceProvider),
-                UndertaleTextureGroupInfo r => new UndertaleTextureGroupInfoViewModel(r),
-                UndertaleEmbeddedImage r => new UndertaleEmbeddedImageViewModel(r),
-                UndertaleAnimationCurve r => new UndertaleAnimationCurveViewModel(r),
-                UndertaleParticleSystem r => new UndertaleParticleSystemViewModel(r),
-                UndertaleParticleSystemEmitter r => new UndertaleParticleSystemEmitterViewModel(r),
-                _ => null,
-            };
-        }
-
-        if (content is not null)
-        {
-            if (!inNewTab && TabSelected is not null)
-            {
-                if (!await TabGoTo(content))
-                    return null;
-                return TabSelected;
-            }
-            else
-            {
-                TabItemViewModel tab = new(content);
-                Tabs.Add(tab);
-                TabSelected = tab;
-                tab.OnOpen();
-                return tab;
-            }
-        }
-
-        return null;
-    }
-
-    public async Task<bool> TabSaveAll()
-    {
-        bool savedAll = true;
-
-        foreach (TabItemViewModel tab in Tabs)
-        {
-            if (!await tab.Save())
-                savedAll = false;
-        }
-
-        return savedAll;
-    }
-
-    [RelayCommand]
-    public async Task TabClose(TabItemViewModel tab)
-    {
-        if (!await tab.Save())
-            return;
-
-        tab.OnClose();
-
-        TabItemViewModel? selected = TabSelected;
-        int index = TabSelectedIndex;
-
-        Tabs.Remove(tab);
-
-        if (TabSelected != selected)
-        {
-            if (index >= Tabs.Count)
-                index = Tabs.Count - 1;
-
-            TabSelectedIndex = index;
-        }
-    }
-
-    public async void TabCloseSelected()
-    {
-        if (TabSelected is not null)
-            _ = TabClose(TabSelected);
-    }
-
-    public async Task TabCloseAll()
-    {
-        foreach (TabItemViewModel tab in Tabs.ToList())
-        {
-            await TabClose(tab);
-        }
-    }
-
-    public void TabCloseAllWithoutSaving()
-    {
-        foreach (TabItemViewModel tab in Tabs.ToList())
-        {
-            tab.OnClose();
-        }
-        Tabs.Clear();
-    }
-
-    public void TabSetToPrevious()
-    {
-        if (TabSelectedIndex > 0)
-            TabSelectedIndex--;
-        else
-            TabSelectedIndex = Tabs.Count - 1;
-    }
-
-    public void TabSetToNext()
-    {
-        if (TabSelectedIndex < Tabs.Count - 1)
-            TabSelectedIndex++;
-        else
-            TabSelectedIndex = 0;
-    }
-
-    public async Task<bool> TabGoTo(ITabContent content)
-    {
-        if (TabSelected is not null)
-            if (!await TabSelected.GoTo(content))
-                return false;
-
-        UpdateSelectedTabProperties();
-        return true;
-    }
-
-    public async void TabGoBack()
-    {
-        if (TabSelected is not null)
-            if (!await TabSelected.GoBack())
-                return;
-
-        UpdateSelectedTabProperties();
-    }
-
-    public async void TabGoForward()
-    {
-        if (TabSelected is not null)
-            if (!await TabSelected.GoForward())
-                return;
-
-        UpdateSelectedTabProperties();
-    }
-
-    partial void OnTabSelectedChanged(TabItemViewModel? value)
-    {
-        UpdateSelectedTabProperties();
-    }
+    // Tabs
+    public Task<TabItemViewModel?> TabOpen(object? item, bool inNewTab = false) => Tabs.TabOpen(item, inNewTab);
 
     // Bottom bar
-    void UpdateSelectedTabProperties()
+    public void UpdateSelectedTabProperties()
     {
-        if (Data is not null && TabSelected?.Content is IUndertaleResourceViewModel vm)
+        if (Data is not null && Tabs.TabSelected?.Content is IUndertaleResourceViewModel vm)
         {
             TabSelectedResourceIdString = Data.IndexOf(vm.Resource).ToString();
 
@@ -1195,7 +1015,7 @@ public partial class MainViewModel : ObservableObject
     partial void OnTabIsMarkedForExportChanged(bool value)
     {
         if (Project is not null
-            && TabSelected?.Content is IUndertaleResourceViewModel vm
+            && Tabs.TabSelected?.Content is IUndertaleResourceViewModel vm
             && vm.Resource is IProjectAsset { ProjectExportable: true } projectAsset)
         {
             if (TabIsMarkedForExport)
