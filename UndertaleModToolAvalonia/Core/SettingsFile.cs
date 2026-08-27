@@ -132,6 +132,8 @@ public partial class SettingsFile
 
     public bool EnableProjectBackup { get; set; } = true;
 
+    public bool AlwaysSaveDataInProjectDestination { get; set; } = true;
+
     public string InstanceIdPrefix { get; set; } = "inst_";
 
     public Underanalyzer.Decompiler.DecompileSettings DecompileSettings { get; set; } = new();

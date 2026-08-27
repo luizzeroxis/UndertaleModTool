@@ -245,8 +245,8 @@
         </Style>
     </Style>
 
-    <Style Selector="Window.SettingsWindow">
-        <Setter Property="Padding" Value="16" />
+    <Style Selector="Window.SettingsWindow StackPanel#ContentStackPanel">
+        <Setter Property="Margin" Value="16" />
     </Style>
 
     <Style Selector="Window.SearchInCodeWindow">

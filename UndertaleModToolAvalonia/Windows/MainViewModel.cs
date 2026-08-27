@@ -345,16 +345,19 @@ public partial class MainViewModel : ObservableObject
 
         try
         {
+            await Task.Run(() =>
+            {
             // TODO: RecompileAllCodeSourcesOnProjectSave setting
             if (Project is not null)
             {
                 Project.RecompileAllCodeSources();
             }
 
-            await Task.Run(() => UndertaleIO.Write(stream, Data, message =>
+                UndertaleIO.Write(stream, Data, message =>
             {
                 Dispatcher.UIThread.Post(() => w.SetText($"Saving data file... {message}"));
-            }));
+                });
+            });
 
             return true;
         }
@@ -466,21 +469,35 @@ public partial class MainViewModel : ObservableObject
 
         if (Project is not null)
         {
+            bool saveInProjectDestination = true;
+
+            if (!Settings.AlwaysSaveDataInProjectDestination)
+            {
             var result = await View!.MessageDialog("Save to the project's designated data file for saving?", buttons: MessageWindow.Buttons.YesNoCancel);
             if (result == MessageWindow.Result.Yes)
             {
-                using FileStream fileStream = File.Open(Project.SaveDataPath, FileMode.Create);
-                if (await SaveData(fileStream))
-                {
-                    return true;
+                    saveInProjectDestination = true;
                 }
+                else if (result == MessageWindow.Result.No)
+                {
+                    // If pressed No, continue saving as if there's no project.
+                    saveInProjectDestination = false;
+                }
+                else
+                {
                 return false;
             }
-            else if (result != MessageWindow.Result.No)
+            }
+
+            if (saveInProjectDestination)
             {
+                if (!await SaveDataToFilePath(Project.SaveDataPath, useTempFile: false))
+                {
                 return false;
             }
-            // If pressed No, continue saving as if there's no project.
+                DataPath = Project.SaveDataPath;
+                return true;
+        }
         }
 
         IStorageFile? file = await View!.SaveFileDialog(new FilePickerSaveOptions()
@@ -495,39 +512,56 @@ public partial class MainViewModel : ObservableObject
             return false;
 
         string path = file.TryGetLocalPath() ?? throw new PlatformNotSupportedException();
-        string tempPath = path + "temp";
 
-        bool saved = false;
-
-        try
+        bool saved = await SaveDataToFilePath(path, useTempFile: true);
+        if (saved)
         {
-            using (FileStream stream = File.Open(tempPath, FileMode.CreateNew, FileAccess.Write))
-            {
-                await SaveData(stream);
-                saved = true;
-
-                stream.Flush(flushToDisk: true);
-            }
-
-            if (saved)
-            {
-                File.Move(tempPath, path, overwrite: true);
-
-                DataPath = path;
-                lastDataLocation = await file.GetParentAsync();
-                return true;
-            }
-            else
-            {
-                File.Delete(tempPath);
-            }
-        }
-        catch (IOException ex)
-        {
-            await View!.MessageDialog($"Error saving data file:\n{ex.Message}");
+            DataPath = path;
+            lastDataLocation = await file.GetParentAsync();
+            return true;
         }
 
         return false;
+    }
+
+    async Task<bool> SaveDataToFilePath(string filePath, bool useTempFile = true)
+    {
+        bool writeFileCreated = false;
+
+        string tempPath = filePath + "temp";
+        string writeFilePath = useTempFile ? tempPath : filePath;
+        var writeFileMode = useTempFile ? FileMode.CreateNew : FileMode.Create;
+
+        try
+        {
+            using (FileStream stream = File.Open(writeFilePath, writeFileMode, FileAccess.Write))
+            {
+                writeFileCreated = true;
+                await SaveData(stream);
+
+                if (useTempFile)
+                {
+                stream.Flush(flushToDisk: true);
+            }
+            }
+
+            if (useTempFile)
+            {
+                File.Move(tempPath, filePath, overwrite: true);
+            }
+        }
+        catch (IOException ex)
+            {
+            // Delete file only if it was created right now, not if it was pre-existing.
+            if (writeFileCreated)
+            {
+                File.Delete(tempPath);
+            }
+            await View!.MessageDialog($"Error saving data file:\n{ex.Message}");
+            return false;
+        }
+
+        return true;
     }
 
     public async void FileClose()
@@ -575,7 +609,7 @@ public partial class MainViewModel : ObservableObject
 
         if (runnerPath is null || !File.Exists(runnerPath))
         {
-            await View!.MessageDialog($"Error: Invalid or non-existent runner.");
+            await View!.MessageDialog($"Error: Invalid or non-existent runner. ({runnerPath})");
             return;
         }
 
@@ -584,7 +618,6 @@ public partial class MainViewModel : ObservableObject
 
     public async void FileRunWithOther()
     {
-        // NOTE: The project system would make this a lot simpler!
         if (Data is null)
             return;
 
@@ -617,10 +650,11 @@ public partial class MainViewModel : ObservableObject
         StartRunnerProcess(runnerPath);
     }
 
-    void StartRunnerProcess(string runnerPath)
+    void StartRunnerProcess(string runnerPath, string? dataPath = null)
     {
+        dataPath ??= DataPath;
         // "launcher" allows game_change data files to still access files above the data path.
-        Process.Start(new ProcessStartInfo(runnerPath, $"-game \"{DataPath}\" launcher") { WorkingDirectory = Path.GetDirectoryName(DataPath) });
+        Process.Start(new ProcessStartInfo(runnerPath, $"-game \"{dataPath}\" launcher") { WorkingDirectory = Path.GetDirectoryName(dataPath) });
     }
 
     public async void FileSettings()
