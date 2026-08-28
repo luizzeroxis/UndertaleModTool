@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Avalonia;
 using SDL3;
 
@@ -13,6 +14,16 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        AppDomain.CurrentDomain.UnhandledException += (source, e) =>
+        {
+            HandleException((e.ExceptionObject as Exception)!);
+        };
+
+        TaskScheduler.UnobservedTaskException += (source, e) =>
+        {
+            HandleException(e.Exception);
+        };
+
         try
         {
             BuildAvaloniaApp()
