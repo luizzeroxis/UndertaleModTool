@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -42,33 +41,23 @@ public class SKImageViewer : Control
 
         if (change.Property == ImageProperty)
         {
-            if (Image is UndertaleTexturePageItem)
+            if (Image is UndertaleTexturePageItem texturePageItem)
             {
                 // Bind these values to a property so we can get updates when they change.
+                // Yeah, I know this sucks.
                 IList<BindingBase> bindings =
                 [
-                    new Binding("Image.TexturePage.TextureData.Image")
-                        {Source = this},
-                    new Binding("Image.SourceX")
-                        {Source = this},
-                    new Binding("Image.SourceY")
-                        {Source = this},
-                    new Binding("Image.SourceWidth")
-                        {Source = this},
-                    new Binding("Image.SourceHeight")
-                        {Source = this},
-                    new Binding("Image.TargetX")
-                        {Source = this},
-                    new Binding("Image.TargetY")
-                        {Source = this},
-                    new Binding("Image.TargetWidth")
-                        {Source = this},
-                    new Binding("Image.TargetHeight")
-                        {Source = this},
-                    new Binding("Image.BoundingWidth")
-                        {Source = this},
-                    new Binding("Image.BoundingHeight")
-                        {Source = this},
+                    CompiledBinding.Create<UndertaleTexturePageItem, GMImage>(source: texturePageItem, expression: x => x.TexturePage.TextureData.Image),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.SourceX),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.SourceY),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.SourceWidth),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.SourceHeight),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.TargetX),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.TargetY),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.TargetWidth),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.TargetHeight),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.BoundingWidth),
+                    CompiledBinding.Create<UndertaleTexturePageItem, ushort>(source: texturePageItem, expression: x => x.BoundingHeight),
                 ];
 
                 MultiBinding multiBinding = new()
@@ -81,14 +70,15 @@ public class SKImageViewer : Control
             }
             else
             {
-                // NOTE: Unbind?
+                ClearValue(BindingsProperty);
+                Invalidate();
             }
-
-            Invalidate();
         }
         else if (change.Property == BindingsProperty)
         {
-            Invalidate();
+            // Only invalidate if not in transitional null state. If new value is actually null, it'll invalidate above in the type check.
+            if (change.NewValue is not null && Image is not null)
+                Invalidate();
         }
     }
 
@@ -103,53 +93,57 @@ public class SKImageViewer : Control
 
     void Invalidate()
     {
+        SKImageDrawOperation? GetSKImageDrawOperation()
+        {
+            if (Image is UndertaleTexturePageItem texturePageItem)
+            {
+                if (texturePageItem.TexturePage is not null)
+                {
+                    SKImage? image = mainVM.ImageCache.GetCachedImageFromTexturePageItem(texturePageItem);
+
+                    if (image is not null)
+                    {
+                        return new SKImageDrawOperation(image,
+                            SKRect.Create(texturePageItem.TargetX, texturePageItem.TargetY, texturePageItem.TargetWidth, texturePageItem.TargetHeight));
+                    }
+                }
+            }
+            else if (Image is GMImage gmImage)
+            {
+                SKImage image = mainVM.ImageCache.GetCachedImageFromGMImage(gmImage);
+                return new SKImageDrawOperation(image);
+            }
+            else if (Image is UndertaleSprite.MaskEntry maskEntry)
+            {
+                int maskSize = maskEntry.Width * maskEntry.Height;
+                byte[] pixels = new byte[maskSize];
+
+                for (int y = 0; y < maskEntry.Height; y++)
+                {
+                    int rowWidth = (maskEntry.Width + 7) / 8;
+                    int byteRowIndex = y * rowWidth;
+
+                    for (int x = 0; x < maskEntry.Width; x++)
+                    {
+                        int i = y * maskEntry.Width + x;
+                        int byteIndex = byteRowIndex + (x / 8);
+                        int bitIndex = x % 8;
+
+                        pixels[i] = (maskEntry.Data[byteIndex] & (1 << (7 - bitIndex))) != 0 ? (byte)255 : (byte)0;
+                    }
+                }
+
+                SKImage image = SKImage.FromPixelCopy(new SKImageInfo(maskEntry.Width, maskEntry.Height, SKColorType.Gray8), pixels);
+                return new SKImageDrawOperation(image);
+            }
+            return null;
+        }
+
         Size size = GetSize();
         Width = size.Width;
         Height = size.Height;
 
-        skImageDrawOperation = null;
-
-        if (Image is UndertaleTexturePageItem texturePageItem)
-        {
-            if (texturePageItem.TexturePage is not null)
-            {
-                SKImage? image = mainVM.ImageCache.GetCachedImageFromTexturePageItem(texturePageItem);
-
-                if (image is not null)
-                {
-                    skImageDrawOperation = new SKImageDrawOperation(image,
-                        SKRect.Create(texturePageItem.TargetX, texturePageItem.TargetY, texturePageItem.TargetWidth, texturePageItem.TargetHeight));
-                }
-            }
-        }
-        else if (Image is GMImage gmImage)
-        {
-            SKImage image = mainVM.ImageCache.GetCachedImageFromGMImage(gmImage);
-            skImageDrawOperation = new SKImageDrawOperation(image);
-        }
-        else if (Image is UndertaleSprite.MaskEntry maskEntry)
-        {
-            int maskSize = maskEntry.Width * maskEntry.Height;
-            byte[] pixels = new byte[maskSize];
-
-            for (int y = 0; y < maskEntry.Height; y++)
-            {
-                int rowWidth = (maskEntry.Width + 7) / 8;
-                int byteRowIndex = y * rowWidth;
-
-                for (int x = 0; x < maskEntry.Width; x++)
-                {
-                    int i = y * maskEntry.Width + x;
-                    int byteIndex = byteRowIndex + (x / 8);
-                    int bitIndex = x % 8;
-
-                    pixels[i] = (maskEntry.Data[byteIndex] & (1 << (7 - bitIndex))) != 0 ? (byte)255 : (byte)0;
-                }
-            }
-
-            SKImage image = SKImage.FromPixelCopy(new SKImageInfo(maskEntry.Width, maskEntry.Height, SKColorType.Gray8), pixels);
-            skImageDrawOperation = new SKImageDrawOperation(image);
-        }
+        skImageDrawOperation = GetSKImageDrawOperation();
 
         InvalidateMeasure();
         InvalidateVisual();
