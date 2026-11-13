@@ -270,11 +270,10 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public string? PromptLoadFile(string? defaultExt, string? filter)
     {
-        // TODO: filter
         var files = Task.Run(() => mainVM.View!.OpenFileDialog(new FilePickerOpenOptions()
         {
             Title = "Load file",
-            FileTypeFilter = FilePickerFileTypes.All,
+            FileTypeFilter = ScriptFileTypes(filter),
         })).Result;
 
         if (files.Count != 1)
@@ -285,18 +284,41 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public string? PromptSaveFile(string defaultExt, string filter)
     {
-        // TODO: filter
         var file = Task.Run(() => mainVM.View!.SaveFileDialog(new FilePickerSaveOptions()
         {
             Title = "Save file",
-            FileTypeChoices = FilePickerFileTypes.All,
-            DefaultExtension = defaultExt,
+            FileTypeChoices = ScriptFileTypes(filter),
+            DefaultExtension = ScriptDefaultExtension(defaultExt),
         })).Result;
 
         if (file is null)
             return null;
 
         return file.TryGetLocalPath();
+    }
+
+    // Scripts that pass no filter get the data file filter, like in the WPF version.
+    static IReadOnlyList<FilePickerFileType> ScriptFileTypes(string? filter)
+    {
+        if (filter is null)
+            return FilePickerFileTypes.Data;
+
+        List<FilePickerFileType> types = FilePickerFileTypes.FromWindowsFilter(filter);
+        if (types.Count == 0)
+            return FilePickerFileTypes.All;
+
+        return types;
+    }
+
+    // Scripts pass extensions both with and without the dot ("txt", ".txt"), and null means a data file, like in the WPF version.
+    static string? ScriptDefaultExtension(string? defaultExt)
+    {
+        if (defaultExt is null)
+            return ".win";
+        if (defaultExt == "")
+            return null;
+
+        return defaultExt.StartsWith('.') ? defaultExt : "." + defaultExt;
     }
 
     public bool RunUMTScript(string path)
