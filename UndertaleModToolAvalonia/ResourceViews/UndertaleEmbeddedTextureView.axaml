@@ -37,11 +37,17 @@
                 <Button Command="{Binding ExportImageAsPNG}">Export image as PNG</Button>
             </StackPanel>
             
-            <!-- TODO: Click on item to open -->
             <!-- TODO: Failed to load message -->
             <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" HorizontalAlignment="Center"
                           MaxHeight="{Binding $parent[ScrollViewer].Viewport.Height}">
-                <l:SKImageViewer Image="{Binding EmbeddedTexture.TextureData.Image}" />
+                <Panel Cursor="Hand" Background="Transparent"
+                       PointerMoved="TextureImage_PointerMoved" PointerExited="TextureImage_PointerExited" PointerReleased="TextureImage_PointerReleased">
+                    <l:SKImageViewer Name="TextureImage" Image="{Binding EmbeddedTexture.TextureData.Image}" />
+                    <Canvas IsHitTestVisible="False">
+                        <Border Name="HoveredItemBorder" IsVisible="False"
+                                Background="LightBlue" BorderBrush="Blue" BorderThickness="2" Opacity="0.65" />
+                    </Canvas>
+                </Panel>
             </ScrollViewer>
         </StackPanel>
     </ScrollViewer>
