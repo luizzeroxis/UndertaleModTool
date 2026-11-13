@@ -166,7 +166,8 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public void ChangeSelection(object newSelection, bool inNewTab = false)
     {
-        // TODO: Implement
+        // Wait so the script continues only after the tab is open (which may ask to save the current tab), like the WPF version.
+        mainVM.Tabs.TabOpen(newSelection, inNewTab).WaitOnDispatcherFrame();
     }
 
     public Task ClickableSearchOutput(string title, string query, int resultsCount, IOrderedEnumerable<KeyValuePair<string, List<(int lineNum, string codeLine)>>> resultsDict, bool showInDecompiledView, IOrderedEnumerable<string>? failedList = null)
