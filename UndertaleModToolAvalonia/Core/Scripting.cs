@@ -125,6 +125,10 @@ public class Scripting
             .AddReferences(
                 "System.Core",
                 "UndertaleModLib")
+            // Also available to scripts in the WPF version, and used by some bundled scripts.
+            .AddReferences(
+                typeof(Newtonsoft.Json.JsonConvert).Assembly,
+                typeof(System.Timers.Timer).Assembly)
             .WithFilePath(filePath)
             .WithFileEncoding(Encoding.Default)
             .WithEmitDebugInformation(true),
