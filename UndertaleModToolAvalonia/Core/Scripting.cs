@@ -376,10 +376,10 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public string? PromptChooseDirectory()
     {
-        IReadOnlyList<IStorageFolder> folders = Task.Run(() => mainVM.View!.OpenFolderDialog(new()
+        IReadOnlyList<IStorageFolder> folders = WaitOnUIThread(() => mainVM.View!.OpenFolderDialog(new()
         {
             Title = "Select directory",
-        })).Result;
+        }));
 
         if (folders.Count != 1)
             return null;
@@ -389,11 +389,11 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public string? PromptLoadFile(string? defaultExt, string? filter)
     {
-        var files = Task.Run(() => mainVM.View!.OpenFileDialog(new FilePickerOpenOptions()
+        var files = WaitOnUIThread(() => mainVM.View!.OpenFileDialog(new FilePickerOpenOptions()
         {
             Title = "Load file",
             FileTypeFilter = ScriptFileTypes(filter),
-        })).Result;
+        }));
 
         if (files.Count != 1)
             return null;
@@ -403,12 +403,12 @@ public class ScriptGlobals : IScriptInterface, IDisposable
 
     public string? PromptSaveFile(string defaultExt, string filter)
     {
-        var file = Task.Run(() => mainVM.View!.SaveFileDialog(new FilePickerSaveOptions()
+        var file = WaitOnUIThread(() => mainVM.View!.SaveFileDialog(new FilePickerSaveOptions()
         {
             Title = "Save file",
             FileTypeChoices = ScriptFileTypes(filter),
             DefaultExtension = ScriptDefaultExtension(defaultExt),
-        })).Result;
+        }));
 
         if (file is null)
             return null;
