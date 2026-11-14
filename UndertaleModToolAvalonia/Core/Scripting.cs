@@ -129,6 +129,8 @@ public class Scripting
             .AddReferences(
                 typeof(Newtonsoft.Json.JsonConvert).Assembly,
                 typeof(System.Timers.Timer).Assembly)
+            // Lets port-only scripts use the app itself (e.g. ImportExport), like WPF scripts can use the WPF app.
+            .AddReferences(typeof(Scripting).Assembly)
             .WithFilePath(filePath)
             .WithFileEncoding(Encoding.Default)
             .WithEmitDebugInformation(true),
