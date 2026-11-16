@@ -1,0 +1,27 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:l="clr-namespace:UndertaleModToolAvalonia"
+        mc:Ignorable="d"
+        x:Class="UndertaleModToolAvalonia.StringUpdateWindow"
+        x:DataType="l:StringUpdateWindow"
+        DataContext="{Binding $self}"
+        Title="String reference changed"
+        Width="400"
+        SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        Classes="MessageWindow">
+    <Window.KeyBindings>
+        <KeyBinding Command="{Binding CancelClick}" Gesture="Escape" />
+    </Window.KeyBindings>
+    <StackPanel>
+        <TextBlock Name="MessageTextBlock" TextWrapping="Wrap"
+                   Text="You edited a string reference! What do you want to do?" />
+        <StackPanel Name="ButtonsStackPanel" Orientation="Vertical">
+            <Button Command="{Binding ChangeOneValueClick}" HorizontalAlignment="Stretch">Change only this one value</Button>
+            <Button Command="{Binding ChangeReferencedValueClick}" HorizontalAlignment="Stretch">Change all occurrences of this value</Button>
+            <Button Command="{Binding CancelClick}" HorizontalAlignment="Stretch">Abort the change</Button>
+        </StackPanel>
+    </StackPanel>
+</Window>
