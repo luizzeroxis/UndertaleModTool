@@ -24,6 +24,9 @@ public partial class UndertaleStringReferenceView : UserControl
 
     readonly MainViewModel mainVM = App.Services.GetRequiredService<MainViewModel>();
 
+    // The dialog moves focus away from the text box, which would ask again while it's still open.
+    bool isAskingHowToApplyEdit;
+
     public UndertaleStringReferenceView()
     {
         InitializeComponent();
@@ -46,7 +49,9 @@ public partial class UndertaleStringReferenceView : UserControl
     {
         base.OnDetachedFromLogicalTree(e);
 
-        UpdateReferenceToText();
+        // There's no one left to ask once the view is closing, so keep a pending edit the safe way: only for this reference.
+        if (IsTextEdited() && !isAskingHowToApplyEdit)
+            UpdateReferenceToText();
     }
 
     private void TextBox_KeyDown_Tunnel(object? sender, KeyEventArgs e)
@@ -54,7 +59,7 @@ public partial class UndertaleStringReferenceView : UserControl
         if (e.Key == Key.Enter && e.KeyModifiers.HasFlag(KeyModifiers.Control))
         {
             e.Handled = true;
-            UpdateReferenceToText();
+            AskAndApplyEdit();
         }
     }
 
@@ -69,7 +74,7 @@ public partial class UndertaleStringReferenceView : UserControl
 
     private void TextBox_LostFocus(object? sender, RoutedEventArgs e)
     {
-        UpdateReferenceToText();
+        AskAndApplyEdit();
     }
 
     public void Add()
@@ -86,6 +91,57 @@ public partial class UndertaleStringReferenceView : UserControl
     public void OpenInNewTab()
     {
         _ = mainVM.TabOpen(Reference, inNewTab: true);
+    }
+
+    bool IsTextEdited()
+    {
+        return Reference is not null && ReferenceTextBox.Text is not null && ReferenceTextBox.Text != Reference.Content;
+    }
+
+    /// <summary>
+    /// Like the WPF editor, asks whether the edit should change only this reference or the shared string itself.
+    /// </summary>
+    async void AskAndApplyEdit()
+    {
+        if (!IsTextEdited() || isAskingHowToApplyEdit)
+            return;
+        if (TopLevel.GetTopLevel(this) is not Window owner)
+            return;
+
+        UndertaleString editedString = Reference;
+        string newText = ReferenceTextBox.Text!;
+
+        StringUpdateWindow.Result result;
+        isAskingHowToApplyEdit = true;
+        try
+        {
+            result = await new StringUpdateWindow().ShowDialog<StringUpdateWindow.Result>(owner);
+        }
+        finally
+        {
+            isAskingHowToApplyEdit = false;
+        }
+
+        // Edits the string object itself, so it's right even if this control now shows something else.
+        if (result == StringUpdateWindow.Result.ChangeReferencedValue)
+        {
+            editedString.Content = newText;
+            return;
+        }
+
+        // While the dialog was open, this control may have been reused for another resource; don't touch that one.
+        bool controlWasReused = Reference != editedString;
+        if (controlWasReused)
+            return;
+
+        if (result == StringUpdateWindow.Result.ChangeOneValue && mainVM.Data is not null)
+        {
+            Reference = mainVM.Data.Strings.MakeString(newText);
+            return;
+        }
+
+        // Aborted: refreshing from the binding (instead of setting Text) keeps the text box following the reference.
+        BindingOperations.GetBindingExpressionBase(ReferenceTextBox, TextBox.TextProperty)?.UpdateTarget();
     }
 
     void UpdateReferenceToText()
